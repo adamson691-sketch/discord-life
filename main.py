@@ -8,7 +8,7 @@ import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from keep_alive import keep_alive  # 🔥 Serwer podtrzymujący
+from keep_alive import keep_alive  # 🔥 do Render
 
 # 🔹 Wczytaj .env
 load_dotenv()
@@ -142,28 +142,24 @@ async def memy(ctx):
     else:
         await ctx.send("⚠️ Nie udało się znaleźć memów!")
 
-# 🔹 Reakcja na ❤️
+# 🔹 Odpowiedź na ❤️
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
-
+    
     if message.content.strip() == "❤️":
-        images_folder = "images"
-        if os.path.exists(images_folder):
-            images = os.listdir(images_folder)
-            if images:
-                random_image = random.choice(images)
-                file_path = os.path.join(images_folder, random_image)
-                await message.channel.send("Sztefyn też 사랑해요 ❤️", file=discord.File(file_path))
-            else:
-                await message.channel.send("⚠️ Brak zdjęć w folderze!")
-        else:
-            await message.channel.send("⚠️ Folder `images/` nie istnieje!")
-
+        folder = "images"
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            if files:
+                img = random.choice(files)
+                await message.channel.send("Sztefyn też 사랑해요", file=discord.File(os.path.join(folder, img)))
+                return
+    
     await bot.process_commands(message)
 
-# 🔹 Harmonogram wysyłania memów
+# 🔹 Harmonogram
 async def schedule_memes():
     tz = pytz.timezone("Europe/Warsaw")
     await bot.wait_until_ready()
