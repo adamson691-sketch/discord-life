@@ -142,6 +142,17 @@ async def memy(ctx):
     else:
         await ctx.send("⚠️ Nie udało się znaleźć memów!")
 
+# 🔥 Reagowanie na "<3"
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    if message.content.strip() == "❤️":
+        await message.channel.send("Sztefyn też 사랑해요 ❤️")
+
+    await bot.process_commands(message)
+
 # 🔹 Harmonogram
 async def schedule_memes():
     tz = pytz.timezone("Europe/Warsaw")
@@ -176,3 +187,4 @@ async def main():
         await bot.start(TOKEN)
 
 asyncio.run(main())
+
