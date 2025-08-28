@@ -8,6 +8,7 @@ import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from keep_alive import keep_alive  # 🔥 Import keep_alive
 
 # 🔹 Wczytaj .env
 load_dotenv()
@@ -169,6 +170,7 @@ async def on_ready():
     print(f"✅ Zalogowano jako {bot.user}")
 
 async def main():
+    keep_alive()  # 🔥 Włącz serwer www do podtrzymania
     async with bot:
         asyncio.create_task(schedule_memes())
         await bot.start(TOKEN)
