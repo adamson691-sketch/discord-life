@@ -8,12 +8,11 @@ import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from keep_alive import keep_alive  # 🔥 Import keep_alive
 
-# 🔹 Wczytaj zmienne z .env (lokalnie)
+# 🔹 Wczytaj .env
 load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")  # ✅ Token bota z Environment Variables (Render)
-CHANNEL_ID = int(os.getenv("CHANNEL_ID", "0"))  # 🔥 0 jako fallback
+TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 
 # 🔹 Bot
 intents = discord.Intents.default()
@@ -118,16 +117,13 @@ async def get_random_memes(count=2):
         if meme and meme not in seen_memes:
             memes.append(meme)
             seen_memes.append(meme)
-            if len(seen_memes) > 20:
+            if len(seen_memes) > 20:  # zapamiętuje tylko 20 ostatnich
                 seen_memes.pop(0)
     return memes
 
 # 🔹 Wysyłanie memów
 async def send_memes():
     channel = bot.get_channel(CHANNEL_ID)
-    if not channel:
-        print("⚠️ Błąd: Nie znaleziono kanału. Sprawdź CHANNEL_ID.")
-        return
     memes = await get_random_memes(2)
     if memes:
         for m in memes:
@@ -173,10 +169,6 @@ async def on_ready():
     print(f"✅ Zalogowano jako {bot.user}")
 
 async def main():
-    keep_alive()  # 🔥 Serwer www do podtrzymania
-    if not TOKEN:
-        print("❌ Błąd: Brak tokena. Sprawdź Environment Variables!")
-        return
     async with bot:
         asyncio.create_task(schedule_memes())
         await bot.start(TOKEN)
