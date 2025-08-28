@@ -8,7 +8,7 @@ import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from keep_alive import keep_alive  # 🔥 Import keep_alive
+from keep_alive import keep_alive  # 🔥 Serwer podtrzymujący
 
 # 🔹 Wczytaj .env
 load_dotenv()
@@ -142,18 +142,28 @@ async def memy(ctx):
     else:
         await ctx.send("⚠️ Nie udało się znaleźć memów!")
 
-# 🔥 Reagowanie na "<3"
+# 🔹 Reakcja na ❤️
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
     if message.content.strip() == "❤️":
-        await message.channel.send("Sztefyn też 사랑해요 ❤️")
+        images_folder = "images"
+        if os.path.exists(images_folder):
+            images = os.listdir(images_folder)
+            if images:
+                random_image = random.choice(images)
+                file_path = os.path.join(images_folder, random_image)
+                await message.channel.send("Sztefyn też 사랑해요 ❤️", file=discord.File(file_path))
+            else:
+                await message.channel.send("⚠️ Brak zdjęć w folderze!")
+        else:
+            await message.channel.send("⚠️ Folder `images/` nie istnieje!")
 
     await bot.process_commands(message)
 
-# 🔹 Harmonogram
+# 🔹 Harmonogram wysyłania memów
 async def schedule_memes():
     tz = pytz.timezone("Europe/Warsaw")
     await bot.wait_until_ready()
@@ -181,10 +191,9 @@ async def on_ready():
     print(f"✅ Zalogowano jako {bot.user}")
 
 async def main():
-    keep_alive()  # 🔥 Włącz serwer www do podtrzymania
+    keep_alive()
     async with bot:
         asyncio.create_task(schedule_memes())
         await bot.start(TOKEN)
 
 asyncio.run(main())
-
