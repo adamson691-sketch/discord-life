@@ -179,19 +179,33 @@ async def on_message(message: discord.Message):
         return
 
     if message.content.strip() == "❤️":
+        responses = [
+            "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
+            "Sztefyn mówi I LOVE, ty mówisz YOU",
+            "Dostałem twoje ❤️ i już szykuję kozi garnitur na ślub",
+            "Mam cię w serduszku jak memy w galerii",
+            "Wysłałaś/eś ❤️, więc chyba muszę napisać do twojej mamy, że jesteś zajęta/y",
+            "Hmm... fajna dupa jesteś."
+        ]
+
         folder = "images"
+        response_text = random.choice(responses)
+
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img = random.choice(files)
-                await message.channel.send("Sztefyn też 사랑해요", file=discord.File(os.path.join(folder, img)))
+                await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+                await bot.process_commands(message)
                 return
-        # gdy nie ma obrazków – wyślij sam tekst
-        await message.channel.send("Sztefyn też 사랑해요")
+
+        await message.channel.send(response_text)
+        await bot.process_commands(message)
         return
 
-    # bardzo ważne – pozwala działać komendom po nadpisaniu on_message
+    # pozwala działać komendom po nadpisaniu on_message
     await bot.process_commands(message)
+
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def schedule_memes():
