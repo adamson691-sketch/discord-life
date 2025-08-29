@@ -19,7 +19,6 @@ print(f"TOKEN: {os.getenv('DISCORD_TOKEN')}")  # 👈 Sprawdź, czy Render ładu
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 
-
 # 🔹 Bot
 intents = discord.Intents.default()
 intents.message_content = True
