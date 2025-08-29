@@ -12,8 +12,13 @@ from keep_alive import keep_alive  # 🔥 do Render
 
 # 🔹 Wczytaj .env
 load_dotenv()
+
+# 🔹 Debug tokenu
+print(f"TOKEN: {os.getenv('DISCORD_TOKEN')}")  # 👈 Sprawdź, czy Render ładuje token
+
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
+
 
 # 🔹 Bot
 intents = discord.Intents.default()
