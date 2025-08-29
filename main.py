@@ -186,6 +186,17 @@ async def on_message(message: discord.Message):
             "Mam cię w serduszku jak memy w galerii",
             "Wysłałaś/eś ❤️, więc chyba muszę napisać do twojej mamy, że jesteś zajęta/y",
             "Hmm... fajna dupa jesteś."
+            "Jedno serduszko od Ciebie i już myślę o wspólnym kredycie hipotecznym.",
+            "Serduszko od Ciebie to jak subskrypcja premium na moją uwagę – dożywotnia!",
+            "Uwaga, uwaga! Serduszko zarejestrowane. Rozpoczynam procedurę zakochiwania.",
+            "Jedno serduszko od Ciebie i już sprawdzam, czy w Biedronce są promocje na pierścionki zaręczynowe.",
+            "Otrzymałem serduszko… uruchamiam tryb romantyczny ogórek kiszony.",
+            "Jeszcze chwila i z tego serduszka wykluje się mały Sztefynek",
+            "Kupiłem już matching dresy w Pepco, bo wiem, że to prawdziwa miłość.",
+            "Serce przyjęte. Od jutra mówię do teściowej: mamo.",
+            "Wysłałaś mi ❤️, a ja już beczę pod Twoim oknem.",
+            "Dostałem serce… i zaraz przyniosę Ci bukiet świeżego siana.",
+            "Wysłałaś serduszko… a ja już zapisuję nas na Kozi Program 500+.",
         ]
 
         folder = "images"
