@@ -185,7 +185,7 @@ async def on_message(message: discord.Message):
             "Dostałem twoje ❤️ i już szykuję kozi garnitur na ślub",
             "Mam cię w serduszku jak memy w galerii",
             "Wysłałaś/eś ❤️, więc chyba muszę napisać do twojej mamy, że jesteś zajęta/y",
-            "Hmm... fajna dupa jesteś."
+            "Hmm... fajna dupa jesteś.",
             "Jedno serduszko od Ciebie i już myślę o wspólnym kredycie hipotecznym.",
             "Serduszko od Ciebie to jak subskrypcja premium na moją uwagę – dożywotnia!",
             "Uwaga, uwaga! Serduszko zarejestrowane. Rozpoczynam procedurę zakochiwania.",
