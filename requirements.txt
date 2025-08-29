@@ -1,5 +1,5 @@
-discord.py
-aiohttp
-python-dotenv
-flask
-pytz
+discord.py==2.3.2
+flask==3.0.0
+aiohttp==3.8.5
+pytz==2023.3
+python-dotenv==1.0.0
