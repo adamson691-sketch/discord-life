@@ -1,4 +1,5 @@
 discord.py==2.3.2
-aiohttp==3.9.5
-requests==2.31.0
-flask==2.3.3
+aiohttp
+python-dotenv
+pytz
+Flask
