@@ -197,6 +197,8 @@ async def on_message(message: discord.Message):
             "Wysłałaś mi ❤️, a ja już beczę pod Twoim oknem.",
             "Dostałem serce… i zaraz przyniosę Ci bukiet świeżego siana.",
             "Wysłałaś serduszko… a ja już zapisuję nas na Kozi Program 500+.",
+            "❤️ to dla mnie znak – od dziś beczę tylko dla Ciebie.",
+            "Dostałem ❤️ i od razu widzę nas na Windows XP, razem na tapecie z zieloną łąką.",
         ]
 
         folder = "images"
