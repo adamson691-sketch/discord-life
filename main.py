@@ -244,8 +244,7 @@ async def on_message(message: discord.Message):
     
 # ─── Reakcja na "uyu" ──────────────────────────────────────────────────────────────
     if message.content.strip().lower() == "uyu":
-        await message.channel.send(":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. Przygotowałem dla was kozi
-        update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed: ")  # <--- tutaj wpisz, co bot ma wysłać
+        await message.channel.send(":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. Przygotowałem dla was kozi update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed: ")  # <--- tutaj wpisz, co bot ma wysłać
         await bot.process_commands(message)
         return
 
