@@ -173,6 +173,8 @@ async def memy(ctx: commands.Context):
         await ctx.send("⚠️ Nie udało się znaleźć memów!")
 
 # ─── Reakcja na ❤️ + losowe zdjęcie z folderu images ──────────────────────────
+recent_responses: list[str] = []  # pamięta ostatnie 10 odpowiedzi
+
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
@@ -199,11 +201,33 @@ async def on_message(message: discord.Message):
             "Wysłałaś serduszko… a ja już zapisuję nas na Kozi Program 500+.",
             "❤️ to dla mnie znak – od dziś beczę tylko dla Ciebie.",
             "Dostałem ❤️ i od razu widzę nas na Windows XP, razem na tapecie z zieloną łąką.",
+            "Twoje ❤️ sprawiło, że zapuściłem kozią bródkę specjalnie dla Ciebie.",
+            "Twoje serce to dla mnie VIP wejściówka na pastwisko Twojego serca.",
+            "Wysłałaś/eś ❤️… a ja już wyrywam kwiatki z sąsiedniego ogródka dla Ciebie.",
+            "Serduszko od Ciebie = darmowa dostawa buziaków na całe życie.",
+            "Dostałem serce i już czyszczę kopytka na naszą randkę.",
+            "❤️ od Ciebie to jak wygrana na loterii… ale zamiast pieniędzy mam Twoje serce!",
+            "Dostałem ❤️… i już szukam w Google ‘jak zaimponować człowiekowi, będąc kozą’.",
+            "❤️ od Ciebie = kozi internet 5G – łączność z sercem bez lagów.",
+            "Jedno ❤️ od Ciebie i już dodaję Cię do koziej listy kontaktów pod pseudonim ‘Mój człowiek’.",
+            "Wysłałaś/eś ❤️… a ja już zamawiam kubki ‘On koza, ona człowiek’.",
+            
         ]
 
         folder = "images"
-        response_text = random.choice(responses)
 
+        # --- wybór odpowiedzi bez powtarzania ostatnich 10 ---
+        available = [r for r in responses if r not in recent_responses]
+        if not available:
+            available = responses  # jeśli wszystkie były, pozwól na powtórki
+        response_text = random.choice(available)
+
+        # zapisz odpowiedź do historii (max 10)
+        recent_responses.append(response_text)
+        if len(recent_responses) > 18:
+            recent_responses.pop(0)
+
+        # --- wysyłanie obrazka lub samego tekstu ---
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
@@ -216,8 +240,8 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-    # pozwala działać komendom po nadpisaniu on_message
     await bot.process_commands(message)
+
 
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
