@@ -211,9 +211,9 @@ async def on_message(message: discord.Message):
         if len(recent_responses) > 18:
             recent_responses.pop(0)
 
-        if os.path.exists(folder):
-    files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-    if files:
+    if os.path.exists(folder):
+        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        if files:
         available_images = [f for f in files if f not in seen_images]
         if not available_images:
             available_images = files  # jeśli wszystkie były, pozwól na powtórki
