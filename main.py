@@ -210,12 +210,21 @@ async def on_message(message: discord.Message):
             recent_responses.pop(0)
 
         if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                img = random.choice(files)
-                await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-                await bot.process_commands(message)
-                return
+    files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+    if files:
+        available_images = [f for f in files if f not in seen_images]
+        if not available_images:
+            available_images = files  # jeśli wszystkie były, pozwól na powtórki
+
+        img = random.choice(available_images)
+        seen_images.append(img)
+        if len(seen_images) > 20:
+            seen_images.pop(0)
+
+        await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        await bot.process_commands(message)
+        return
+
 
         await message.channel.send(response_text)
         await bot.process_commands(message)
@@ -234,6 +243,7 @@ async def on_message(message: discord.Message):
         return
 
     await bot.process_commands(message)
+    
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def schedule_memes():
