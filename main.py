@@ -38,6 +38,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # przechowuje 20 ostatnich linków wysłanych memów (by nie duplikować)
 seen_memes: list[str] = []
+# przechowuje 20 ostatnich wysłanych obrazków z folderu images
+seen_images: list[str] = []
 
 # ─── Pobieranie stron ─────────────────────────────────────────────────────────
 async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
