@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
-# ─── Konfiguracja ─────────────────────────────────────────────────────────────
+# ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
 load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -23,7 +23,7 @@ if not TOKEN:
     sys.exit(1)
 
 try:
-    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
+    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW is not None else None
 except ValueError:
     CHANNEL_ID = None
 
@@ -36,9 +36,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ─── Pamięć memów i odpowiedzi ────────────────────────────────────────────────
-seen_memes: list[str] = []  # pamięta 20 ostatnich memów
-recent_responses: list[str] = []  # pamięta 18 ostatnich odpowiedzi na ❤️
+# przechowuje 20 ostatnich linków wysłanych memów (by nie duplikować)
+seen_memes: list[str] = []
 
 # ─── Pobieranie stron ─────────────────────────────────────────────────────────
 async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
@@ -56,7 +55,7 @@ async def get_meme_from_jeja():
         html = await fetch(s, "https://jeja.pl/")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://i\.jeja\.pl/[^"]+)"', html)
+        imgs = re.findall(r'src="(https://i\.jeja\.pl/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
 async def get_meme_from_besty():
@@ -64,7 +63,7 @@ async def get_meme_from_besty():
         html = await fetch(s, "https://besty.pl/")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://img\.besty\.pl/[^"]+)"', html)
+        imgs = re.findall(r'src="(https://img\.besty\.pl/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
 async def get_meme_from_wykop():
@@ -72,7 +71,7 @@ async def get_meme_from_wykop():
         html = await fetch(s, "https://wykop.pl/hity")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://[^"]+\.jpg)"', html)
+        imgs = re.findall(r'src="(https://[^\"]+\.jpg)"', html)
         return random.choice(imgs) if imgs else None
 
 async def get_meme_from_memypl():
@@ -80,7 +79,7 @@ async def get_meme_from_memypl():
         html = await fetch(s, "https://memy.pl/")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://memy\.pl/memes/[^"]+)"', html)
+        imgs = re.findall(r'src="(https://memy\.pl/memes/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
 async def get_meme_from_9gag():
@@ -88,7 +87,7 @@ async def get_meme_from_9gag():
         html = await fetch(s, "https://9gag.com/")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://img-9gag-fun\.9cache\.com/photo/[^"]+)"', html)
+        imgs = re.findall(r'src="(https://img-9gag-fun\.9cache\.com/photo/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
 async def get_meme_from_demotywatory():
@@ -96,7 +95,7 @@ async def get_meme_from_demotywatory():
         html = await fetch(s, "https://demotywatory.pl/")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://img\.demotywatory\.pl/uploads/[^"]+)"', html)
+        imgs = re.findall(r'src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
 async def get_meme_from_kwejk():
@@ -104,10 +103,10 @@ async def get_meme_from_kwejk():
         html = await fetch(s, "https://kwejk.pl/")
         if not html:
             return None
-        imgs = re.findall(r'<img src="(https://i1\.kwejk\.pl/k/[^"]+)"', html)
+        imgs = re.findall(r'src="(https://i1\.kwejk\.pl/k/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
-# ─── Losowanie memów ──────────────────────────────────────────────────────────
+# ─── Losowanie memów (z pamięcią 20 ostatnich) ───────────────────────────────
 async def get_random_memes(count: int = 2):
     memes: list[str] = []
     funcs = [
@@ -158,16 +157,16 @@ async def memy(ctx: commands.Context):
     else:
         await ctx.send("⚠️ Nie udało się znaleźć memów!")
 
-# ─── Obsługa wiadomości ───────────────────────────────────────────────────────
+# ─── Reakcja na ❤️ ────────────────────────────────────────────────────────────
+recent_responses: list[str] = []  # pamięta ostatnie odpowiedzi
+
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
 
-    content = message.content.strip().lower()
-
     # ❤️ reakcja
-    if content == "❤️":
+    if message.content.strip() == "❤️":
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
             "Sztefyn mówi I LOVE, ty mówisz YOU",
@@ -175,41 +174,18 @@ async def on_message(message: discord.Message):
             "Mam cię w serduszku jak memy w galerii",
             "Wysłałaś/eś ❤️, więc chyba muszę napisać do twojej mamy, że jesteś zajęta/y",
             "Hmm... fajna dupa jesteś.",
-            "Jedno serduszko od Ciebie i już myślę o wspólnym kredycie hipotecznym.",
-            "Serduszko od Ciebie to jak subskrypcja premium na moją uwagę – dożywotnia!",
-            "Uwaga, uwaga! Serduszko zarejestrowane. Rozpoczynam procedurę zakochiwania.",
-            "Jedno serduszko od Ciebie i już sprawdzam, czy w Biedronce są promocje na pierścionki zaręczynowe.",
-            "Otrzymałem serduszko… uruchamiam tryb romantyczny ogórek kiszony.",
-            "Jeszcze chwila i z tego serduszka wykluje się mały Sztefynek",
-            "Kupiłem już matching dresy w Pepco, bo wiem, że to prawdziwa miłość.",
-            "Serce przyjęte. Od jutra mówię do teściowej: mamo.",
-            "Wysłałaś mi ❤️, a ja już beczę pod Twoim oknem.",
-            "Dostałem serce… i zaraz przyniosę Ci bukiet świeżego siana.",
-            "Wysłałaś serduszko… a ja już zapisuję nas na Kozi Program 500+.",
-            "❤️ to dla mnie znak – od dziś beczę tylko dla Ciebie.",
-            "Dostałem ❤️ i od razu widzę nas na Windows XP, razem na tapecie z zieloną łąką.",
-            "Twoje ❤️ sprawiło, że zapuściłem kozią bródkę specjalnie dla Ciebie.",
-            "Twoje serce to dla mnie VIP wejściówka na pastwisko Twojego serca.",
-            "Wysłałaś/eś ❤️… a ja już wyrywam kwiatki z sąsiedniego ogródka dla Ciebie.",
-            "Serduszko od Ciebie = darmowa dostawa buziaków na całe życie.",
-            "Dostałem serce i już czyszczę kopytka na naszą randkę.",
-            "❤️ od Ciebie to jak wygrana na loterii… ale zamiast pieniędzy mam Twoje serce!",
-            "Dostałem ❤️… i już szukam w Google ‘jak zaimponować człowiekowi, będąc kozą’.",
-            "❤️ od Ciebie = kozi internet 5G – łączność z sercem bez lagów.",
-            "Jedno ❤️ od Ciebie i już dodaję Cię do koziej listy kontaktów pod pseudonim ‘Mój człowiek’.",
-            "Wysłałaś/eś ❤️… a ja już zamawiam kubki ‘On koza, ona człowiek’.",
         ]
+        folder = "images"
 
         available = [r for r in responses if r not in recent_responses]
         if not available:
             available = responses
-
         response_text = random.choice(available)
+
         recent_responses.append(response_text)
         if len(recent_responses) > 18:
             recent_responses.pop(0)
 
-        folder = "images"
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
@@ -219,12 +195,20 @@ async def on_message(message: discord.Message):
                 return
 
         await message.channel.send(response_text)
+        await bot.process_commands(message)
+        return
 
     # uyu reakcja
-    elif content == "uyu":
-        await message.channel.send(
-            ":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. Przygotowałem dla was kozi update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed:"
-        )
+    if message.content.strip().lower() == "uyu":
+        await message.channel.send(":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. Przygotowałem dla was kozi update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed:")
+        await bot.process_commands(message)
+        return
+
+    # 🔥 nowy szablon na odpowiedzi 🔥
+    if message.content.strip().lower() == "tutaj_wpisz_wiadomosc":
+        await message.channel.send("Tutaj wpisz odpowiedź bota ✨")
+        await bot.process_commands(message)
+        return
 
     await bot.process_commands(message)
 
