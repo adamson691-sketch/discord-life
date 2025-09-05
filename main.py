@@ -238,8 +238,8 @@ async def on_message(message: discord.Message):
         return
 
     # 🔥 nowy szablon na odpowiedzi 🔥
-    if message.content.strip().lower() == "tutaj_wpisz_wiadomosc":
-        await message.channel.send("Tutaj wpisz odpowiedź bota ✨")
+    if message.content.strip().lower() == "elooo":
+        await message.channel.send("To masz na Dzień Dobry")
         await bot.process_commands(message)
         return
 
