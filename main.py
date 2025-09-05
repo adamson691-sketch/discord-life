@@ -161,9 +161,6 @@ async def memy(ctx: commands.Context):
     else:
         await ctx.send("⚠️ Nie udało się znaleźć memów!")
 
-# ─── Reakcja na ❤️ ────────────────────────────────────────────────────────────
-recent_responses: list[str] = []  # pamięta ostatnie odpowiedzi
-
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
@@ -213,22 +210,21 @@ async def on_message(message: discord.Message):
         if len(recent_responses) > 18:
             recent_responses.pop(0)
 
-    if os.path.exists(folder):
-        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-        if files: available_images = [f for f in files if f not in seen_images]
-        if not available_images:
-            available_images = files  # jeśli wszystkie były, pozwól na powtórki
+        # jeżeli istnieje folder z obrazkami → dołącz losowy obrazek
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            if files:
+                available_images = [f for f in files if f not in seen_images] or files
+                img = random.choice(available_images)
+                seen_images.append(img)
+                if len(seen_images) > 20:
+                    seen_images.pop(0)
 
-        img = random.choice(available_images)
-        seen_images.append(img)
-        if len(seen_images) > 20:
-            seen_images.pop(0)
+                await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+                await bot.process_commands(message)
+                return
 
-        await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        await bot.process_commands(message)
-        return
-
-
+        # jeśli nie ma obrazków → wyślij tylko tekst
         await message.channel.send(response_text)
         await bot.process_commands(message)
         return
@@ -245,7 +241,9 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
+    # domyślnie przepuszczaj wszystkie inne wiadomości do komend
     await bot.process_commands(message)
+
     
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
