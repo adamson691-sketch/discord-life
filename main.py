@@ -42,6 +42,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 seen_memes: list[str] = []
 # przechowuje 20 ostatnich wysłanych obrazków z folderu images
 seen_images: list[str] = []
+# przechowuje ostatnie odpowiedzi na ❤️ (by nie powtarzać za często)
+recent_responses: list[str] = []
 
 # ─── Pobieranie stron ─────────────────────────────────────────────────────────
 async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
