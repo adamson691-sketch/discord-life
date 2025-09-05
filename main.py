@@ -168,7 +168,7 @@ async def on_message(message: discord.Message):
         return
 
 # ❤️ reakcja
-    if message.content.strip() == "❤️":
+    if message.content.strip() in ["❤️", "<3"]:
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
             "Sztefyn mówi I LOVE, ty mówisz YOU",
