@@ -152,6 +152,11 @@ async def send_memes():
         await channel.send("⚠️ Nie udało się znaleźć memów!")
 
 # ─── Komendy ──────────────────────────────────────────────────────────────────
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+        
 if message.content.strip().lower() == "memy":
         memes = await get_random_memes(2)
         if memes:
@@ -162,12 +167,7 @@ if message.content.strip().lower() == "memy":
         await bot.process_commands(message)
         return
 
-@bot.event
-async def on_message(message: discord.Message):
-    if message.author == bot.user:
-        return
-
-    # ❤️ reakcja
+# ❤️ reakcja
     if message.content.strip() == "❤️":
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
