@@ -220,7 +220,7 @@ async def on_message(message: discord.Message):
                 available_images = [f for f in files if f not in seen_images] or files
                 img = random.choice(available_images)
                 seen_images.append(img)
-                if len(seen_images) > 20:
+                if len(seen_images) > 60:
                     seen_images.pop(0)
 
                 await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
