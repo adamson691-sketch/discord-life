@@ -237,10 +237,24 @@ async def on_message(message: discord.Message):
         return
 
     # 🔥 nowy szablon na odpowiedzi 🔥
-    if message.content.strip().lower() == "elooo":
-        await message.channel.send("To masz na Dzień Dobry")
+        # gorąco? reakcja
+    if message.content.strip().lower() == "gorąco?":
+        folder = "Hot"
+
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+
+            if files:
+                img = random.choice(files)
+                await message.channel.send("Too hot", file=discord.File(os.path.join(folder, img)))
+                await bot.process_commands(message)
+                return
+
+        # jeśli brak folderu albo brak plików
+        await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
         await bot.process_commands(message)
         return
+
 
     # domyślnie przepuszczaj wszystkie inne wiadomości do komend
     await bot.process_commands(message)
