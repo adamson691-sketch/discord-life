@@ -245,10 +245,6 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-
-            if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-
             if files:
                 img = random.choice(files)
                 await message.channel.send("Too hot", file=discord.File(os.path.join(folder, img)))
