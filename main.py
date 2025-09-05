@@ -157,7 +157,7 @@ async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
         
-if message.content.strip().lower() == "memy":
+    if message.content.strip().lower() == "memy":
         memes = await get_random_memes(2)
         if memes:
             for m in memes:
