@@ -245,12 +245,6 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-            if files:
-                img = random.choice(files)
-                await message.channel.send("Too hot", file=discord.File(os.path.join(folder, img)))
-                await bot.process_commands(message)
-                return
-
         # jeśli brak folderu albo brak plików
         await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
         await bot.process_commands(message)
