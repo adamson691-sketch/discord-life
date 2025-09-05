@@ -152,14 +152,15 @@ async def send_memes():
         await channel.send("⚠️ Nie udało się znaleźć memów!")
 
 # ─── Komendy ──────────────────────────────────────────────────────────────────
-@bot.command(name="memy")
-async def memy(ctx: commands.Context):
-    memes = await get_random_memes(2)
-    if memes:
-        for m in memes:
-            await ctx.send(m)
-    else:
-        await ctx.send("⚠️ Nie udało się znaleźć memów!")
+if message.content.strip().lower() == "memy":
+        memes = await get_random_memes(2)
+        if memes:
+            for m in memes:
+                await message.channel.send(m)
+        else:
+            await message.channel.send("⚠️ Nie udało się znaleźć memów!")
+        await bot.process_commands(message)
+        return
 
 @bot.event
 async def on_message(message: discord.Message):
