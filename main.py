@@ -240,10 +240,10 @@ async def on_message(message: discord.Message):
 
     # 🔥 nowy szablon na odpowiedzi 🔥
         # gorąco? reakcja
-    if message.content.strip().lower() == "Gorąco?", "gorąco?" ":
+        if message.content.strip().lower() == "Gorąco?", "gorąco?" ":
         folder = "Hot"
 
-        if os.path.exists(folder):
+            if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
 
             if files:
