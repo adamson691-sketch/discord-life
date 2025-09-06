@@ -267,7 +267,7 @@ async def schedule_memes():
     await bot.wait_until_ready()
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(11, 05), (21, 37)]
+        targets = [(11, 10), (21, 37)]
         next_time = None
 
         for hour, minute in targets:
@@ -277,7 +277,7 @@ async def schedule_memes():
                 break
 
         if not next_time:
-            next_time = tz.localize(datetime(now.year, now.month, now.day, 11, 05)) + timedelta(days=1)
+            next_time = tz.localize(datetime(now.year, now.month, now.day, 11, 10)) + timedelta(days=1)
 
         wait_seconds = max(1, int((next_time - now).total_seconds()))
         print(f"⏳ Czekam {wait_seconds/3600:.2f}h do wysyłki")
