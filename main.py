@@ -210,7 +210,7 @@ async def on_message(message: discord.Message):
         response_text = random.choice(available)
 
         recent_responses.append(response_text)
-        if len(recent_responses) > 18:
+        if len(recent_responses) > 20:
             recent_responses.pop(0)
 
         # jeżeli istnieje folder z obrazkami → dołącz losowy obrazek
