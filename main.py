@@ -291,6 +291,7 @@ async def main():
     keep_alive()
     async with bot:
         asyncio.create_task(schedule_memes())
+        print("TOKEN LOADED:", repr(TOKEN))
         await bot.start(TOKEN)
 
 if __name__ == "__main__":
