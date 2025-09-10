@@ -19,25 +19,10 @@ import sys
 
 load_dotenv()
 
-# pobieramy token i usuwamy wszystkie białe znaki (spacje, nowe linie, taby, itp.)
-TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())
-print("DEBUG TOKEN:", TOKEN[:10], "..." if TOKEN else "NONE", "| Length:", len(TOKEN))
+TOKEN = os.environ["DISCORD_TOKEN"]  # Secret
+CHANNEL_ID = int(os.environ["CHANNEL_ID"])
+print("DEBUG TOKEN length:", len(TOKEN))  # powinno być 71
 
-# pobieramy ID kanału i usuwamy spacje/entery
-CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
-
-if not TOKEN:
-    print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (.env / Render → Environment).")
-    sys.exit(1)
-
-try:
-    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
-except ValueError:
-    CHANNEL_ID = None
-
-if CHANNEL_ID is None:
-    print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
-    sys.exit(1)
 
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
