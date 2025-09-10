@@ -15,7 +15,7 @@ from keep_alive import keep_alive  # serwer do podtrzymania na Render
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
 load_dotenv()
 
-TOKEN = os.getenv("DISCORD_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
 print("DEBUG TOKEN repr:", repr(TOKEN))
 print("Token length:", len(TOKEN))
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
