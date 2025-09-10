@@ -16,8 +16,7 @@ from keep_alive import keep_alive  # serwer do podtrzymania na Render
 load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
-print("DEBUG TOKEN repr:", repr(TOKEN))
-print("Token length:", len(TOKEN))
+print("DEBUG TOKEN:", TOKEN[:10], "..." if TOKEN else "NONE", "| Length:", len(TOKEN))
 CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
 
 if not TOKEN:
