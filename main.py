@@ -15,22 +15,25 @@ from keep_alive import keep_alive  # serwer do podtrzymania na Render
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
 load_dotenv()
 
+# wczytaj token i usuń spacje/nowe linie
 TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
 print("DEBUG TOKEN:", TOKEN[:10], "..." if TOKEN else "NONE", "| Length:", len(TOKEN))
-CHANNEL_ID_RAW = os.getenv("CHANNEL_ID")
+
+CHANNEL_ID_RAW = os.getenv("CHANNEL_ID", "").strip()
 
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (.env / Render → Environment).")
     sys.exit(1)
 
 try:
-    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW is not None else None
+    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
 except ValueError:
     CHANNEL_ID = None
 
 if CHANNEL_ID is None:
     print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
     sys.exit(1)
+
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
