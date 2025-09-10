@@ -13,13 +13,18 @@ from dotenv import load_dotenv
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
+from dotenv import load_dotenv
+import os
+import sys
+
 load_dotenv()
 
-# wczytaj token i usuń spacje/nowe linie
-TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
+# pobieramy token i usuwamy wszystkie białe znaki (spacje, nowe linie, taby, itp.)
+TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())
 print("DEBUG TOKEN:", TOKEN[:10], "..." if TOKEN else "NONE", "| Length:", len(TOKEN))
 
-CHANNEL_ID_RAW = os.getenv("CHANNEL_ID", "").strip()
+# pobieramy ID kanału i usuwamy spacje/entery
+CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
 
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (.env / Render → Environment).")
