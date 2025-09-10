@@ -13,15 +13,32 @@ from dotenv import load_dotenv
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
-from dotenv import load_dotenv
+# ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
 import os
 import sys
 
-load_dotenv()
+# pobieramy token i CHANNEL_ID bez dodatkowego przetwarzania
+TOKEN = os.environ.get("DISCORD_TOKEN")
+CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID")
 
-TOKEN = os.environ["DISCORD_TOKEN"]  # Secret
-CHANNEL_ID = int(os.environ["CHANNEL_ID"])
-print("DEBUG TOKEN length:", len(TOKEN))  # powinno być 71
+# debug – sprawdzenie długości tokena
+print("DEBUG TOKEN length:", len(TOKEN) if TOKEN else "NONE")
+
+# walidacja tokena
+if not TOKEN:
+    print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Secret).")
+    sys.exit(1)
+
+# walidacja CHANNEL_ID
+try:
+    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
+except ValueError:
+    CHANNEL_ID = None
+
+if CHANNEL_ID is None:
+    print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
+    sys.exit(1)
+
 
 
 
