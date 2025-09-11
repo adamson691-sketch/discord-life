@@ -16,7 +16,8 @@ from keep_alive import keep_alive  # serwer do podtrzymania na Render
 TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())
 CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
 
-print("DEBUG TOKEN length:", len(TOKEN) if TOKEN else "NONE")
+print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
+print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych.")
