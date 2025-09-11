@@ -250,12 +250,12 @@ async def on_message(message: discord.Message):
     # 🔥 nowy szablon na odpowiedzi 🔥
     if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
     folder = "hot"
-    if os.path.exists(folder):
+        if os.path.exists(folder):
         files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-        if files:
-            await message.channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, random.choice(files))))
-            await bot.process_commands(message)
-            return
+            if files:
+                await message.channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, random.choice(files))))
+                await bot.process_commands(message)
+                return
 
     # jeśli brak folderu albo brak plików
     await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
