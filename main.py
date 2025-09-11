@@ -13,16 +13,23 @@ from dotenv import load_dotenv
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
-TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())
+import os
+import sys
+
+# pobieramy token i ID kanału bez użycia .env
+TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())  # usuwa spacje i nowe linie
 CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
 
+# debug – sprawdzenie tokena
 print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
 print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
+# walidacja tokena
 if not TOKEN:
-    print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych.")
+    print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Environment Variables).")
     sys.exit(1)
 
+# walidacja ID kanału
 try:
     CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
 except ValueError:
@@ -31,6 +38,7 @@ except ValueError:
 if CHANNEL_ID is None:
     print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
     sys.exit(1)
+
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
