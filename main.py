@@ -241,30 +241,36 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-    # uyu reakcja
+    # ─── Reakcja "uyu" ───────────────────────────────
     if message.content.strip().lower() == "uyu":
-        await message.channel.send(":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. Przygotowałem dla was kozi update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed:")
+        await message.channel.send(
+            ":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... "
+            "Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. "
+            "Przygotowałem dla was kozi update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed:"
+        )
         await bot.process_commands(message)
         return
 
-    # 🔥 reakcja na gorąco? lub emoji 🔥
+    # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
     if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
-    folder = "hot"
+        folder = "hot"
         if os.path.exists(folder):
-        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 await message.channel.send(
-                    "Too hot 🔥", 
+                    "Too hot 🔥",
                     file=discord.File(os.path.join(folder, random.choice(files)))
-            )
-            await bot.process_commands(message)
-            return
+                )
+                await bot.process_commands(message)
+                return
 
-    # jeśli brak folderu albo brak plików
-    await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        # jeśli brak folderu albo brak plików
+        await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        await bot.process_commands(message)
+        return
+
+    # ─── Przepuszczanie wszystkich innych wiadomości do komend ───────────────
     await bot.process_commands(message)
-    return
-
 
 
 
