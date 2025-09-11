@@ -13,23 +13,17 @@ from dotenv import load_dotenv
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
-# ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
-import os
-import sys
-
-# pobieramy token i CHANNEL_ID bez dodatkowego przetwarzania
 TOKEN = os.environ.get("DISCORD_TOKEN")
 CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID")
 
-# debug – sprawdzenie długości tokena
 print("DEBUG TOKEN length:", len(TOKEN) if TOKEN else "NONE")
 
-# walidacja tokena
+# Walidacja tokena
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Secret).")
     sys.exit(1)
 
-# walidacja CHANNEL_ID
+# Walidacja CHANNEL_ID
 try:
     CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
 except ValueError:
@@ -38,8 +32,6 @@ except ValueError:
 if CHANNEL_ID is None:
     print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
     sys.exit(1)
-
-
 
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
@@ -53,6 +45,7 @@ seen_memes: list[str] = []
 seen_images: list[str] = []
 # przechowuje ostatnie odpowiedzi na ❤️ (by nie powtarzać za często)
 recent_responses: list[str] = []
+
 
 # ─── Pobieranie stron ─────────────────────────────────────────────────────────
 async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
@@ -121,7 +114,7 @@ async def get_meme_from_kwejk():
         imgs = re.findall(r'src="(https://i1\.kwejk\.pl/k/[^\"]+)"', html)
         return random.choice(imgs) if imgs else None
 
-# ─── Losowanie memów (z pamięcią 20 ostatnich) ───────────────────────────────
+# ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 async def get_random_memes(count: int = 2):
     memes: list[str] = []
     funcs = [
@@ -162,12 +155,13 @@ async def send_memes():
     else:
         await channel.send("⚠️ Nie udało się znaleźć memów!")
 
-# ─── Komendy ──────────────────────────────────────────────────────────────────
+
+# ─── Obsługa wiadomości ───────────────────────────────────────────────────────
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
-        
+
     if message.content.strip().lower() == "memy":
         memes = await get_random_memes(2)
         if memes:
@@ -178,7 +172,7 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-# ❤️ reakcja
+    # ❤️ reakcja
     if message.content.strip() in ["❤️", "<3"]:
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
@@ -248,7 +242,6 @@ async def on_message(message: discord.Message):
         return
 
     # 🔥 nowy szablon na odpowiedzi 🔥
-        # gorąco? reakcja
     if message.content.strip().lower() in ["gorąco?", "goraco?"]:
         folder = "hot"
         if os.path.exists(folder):
@@ -263,12 +256,9 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-
-
     # domyślnie przepuszczaj wszystkie inne wiadomości do komend
     await bot.process_commands(message)
 
-    
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def schedule_memes():
@@ -276,7 +266,7 @@ async def schedule_memes():
     await bot.wait_until_ready()
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(11, 00), (21, 37)]
+        targets = [(11, 0), (21, 37)]
         next_time = None
 
         for hour, minute in targets:
@@ -286,14 +276,15 @@ async def schedule_memes():
                 break
 
         if not next_time:
-            next_time = tz.localize(datetime(now.year, now.month, now.day, 11, 00)) + timedelta(days=1)
+            next_time = tz.localize(datetime(now.year, now.month, now.day, 11, 0)) + timedelta(days=1)
 
         wait_seconds = max(1, int((next_time - now).total_seconds()))
         print(f"⏳ Czekam {wait_seconds/3600:.2f}h do wysyłki")
         await asyncio.sleep(wait_seconds)
         await send_memes()
 
-# ─── Start ────────────────────────────────────────────────────────────────────
+
+# ─── Start ─────────────────────────────────────────────────────────────────────
 @bot.event
 async def on_ready():
     print(f"✅ Zalogowano jako {bot.user} (ID: {bot.user.id})")
@@ -306,3 +297,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
