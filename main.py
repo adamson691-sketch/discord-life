@@ -217,12 +217,11 @@ async def on_message(message: discord.Message):
         if not available:
             available = responses
         response_text = random.choice(available)
-
         recent_responses.append(response_text)
         if len(recent_responses) > 20:
             recent_responses.pop(0)
 
-        # jeżeli istnieje folder z obrazkami → dołącz losowy obrazek
+        img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
@@ -232,12 +231,12 @@ async def on_message(message: discord.Message):
                 if len(seen_images) > 60:
                     seen_images.pop(0)
 
-                await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-                await bot.process_commands(message)
-                return
+        # wysyłamy dokładnie jedną wiadomość z tekstem i ewentualnym obrazkiem
+        if img:
+            await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await message.channel.send(response_text)
 
-        # jeśli nie ma obrazków → wyślij tylko tekst
-        await message.channel.send(response_text)
         await bot.process_commands(message)
         return
 
@@ -254,24 +253,22 @@ async def on_message(message: discord.Message):
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
     if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
         folder = "hot"
+        img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
-                await message.channel.send(
-                    "Too hot 🔥",
-                    file=discord.File(os.path.join(folder, random.choice(files)))
-                )
-                await bot.process_commands(message)
-                return
+                img = random.choice(files)
 
-        # jeśli brak folderu albo brak plików
-        await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        if img:
+            await message.channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, img)))
+        else:
+            await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+
         await bot.process_commands(message)
         return
 
-    # ─── Przepuszczanie wszystkich innych wiadomości do komend ───────────────
+    # ─── DOMYŚLNIE przepuszczaj wszystkie inne wiadomości do komend
     await bot.process_commands(message)
-
 
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
