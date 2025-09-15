@@ -169,7 +169,7 @@ async def on_message(message: discord.Message):
         return
 
     if message.content.strip().lower() == "memy":
-        memes = await get_random_memes(2)
+        memes = await get_random_memes(6)
         if memes:
             for m in memes:
                 await message.channel.send(m)
@@ -243,9 +243,7 @@ async def on_message(message: discord.Message):
     # ─── Reakcja "uyu" ───────────────────────────────
     if message.content.strip().lower() == "uyu":
         await message.channel.send(
-            ":goat: :goat: :goat: Jak jest zmiana wyglądu to oznacza tylko jedno.... "
-            "Domyślacie się co ? Hmmmm? O kozi ser skąd wiedzieliście. "
-            "Przygotowałem dla was kozi update. Na pewno wiecie co można teraz zrobić.:flushed: :scream: :hand_with_index_finger_and_thumb_crossed:"
+            "Wybaczcie byłem na łące all inclusive i musiłem wypocząć, ale już jestem. ❤️"
         )
         await bot.process_commands(message)
         return
