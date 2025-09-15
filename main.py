@@ -242,9 +242,9 @@ async def on_message(message: discord.Message):
 
     # ─── Reakcja "uyu" ───────────────────────────────
         if message.content.strip().lower() == "uyu":
-        folder = "photo"
-        img = None
-            if os.path.exists(folder):
+            folder = "photo"
+            img = None
+                if os.path.exists(folder):
         files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
             img = random.choice(files)
