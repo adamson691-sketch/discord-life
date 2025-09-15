@@ -242,11 +242,21 @@ async def on_message(message: discord.Message):
 
     # ─── Reakcja "uyu" ───────────────────────────────
     if message.content.strip().lower() == "uyu":
-        await message.channel.send(
-            "Wybaczcie byłem na łące all inclusive i musiłem wypocząć, ale już jestem. ❤️"
-        )
-        await bot.process_commands(message)
-        return
+    folder = "photo"
+    img = None
+        if os.path.exists(folder):
+        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            if files:
+            img = random.choice(files)
+
+        if img:
+        await message.channel.send("Wybaczcie byłem na łące all inclusive i musiałem wypocząć, ale już jestem ❤️. Podczas wypoczynku spotkałem 'pewną ślicznotkę' to podeślę wam zdjęcie ❤️", file=discord.File(os.path.join(folder, img)))
+    else:
+        await message.channel.send("Wybaczcie byłem na łące all inclusive i musiałem wypocząć, ale już jestem ❤️. Podczas wypoczynku spotkałem 'pewną ślicznotkę' to podeślę wam zdjęcie ❤️ (ale brak obrazków w folderze!)")
+    
+    await bot.process_commands(message)
+    return
+
 
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
     if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
