@@ -169,7 +169,7 @@ async def on_message(message: discord.Message):
         return
 
     if message.content.strip().lower() == "memy":
-        memes = await get_random_memes(6)
+        memes = await get_random_memes(2)
         if memes:
             for m in memes:
                 await message.channel.send(m)
