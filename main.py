@@ -241,7 +241,7 @@ async def on_message(message: discord.Message):
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
-    if message.content.strip().lower() == "Sztefyn, co będziesz robił w weekend?":
+    if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
         folder = "photo"
         img = None
 
