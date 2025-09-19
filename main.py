@@ -241,7 +241,7 @@ async def on_message(message: discord.Message):
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
-    if message.content.strip().lower() == "uyu":
+    if message.content.strip().lower() == "Sztefyn co będziesz robił w weekend":
         folder = "photo"
         img = None
 
@@ -252,14 +252,13 @@ async def on_message(message: discord.Message):
 
         if img:
             await message.channel.send(
-                "Wybaczcie byłem na łące all inclusive i musiałem wypocząć, ale już jestem ❤️. "
-                "Podczas wypoczynku spotkałem 'pewną ślicznotkę' to podeślę wam zdjęcie ❤️",
+                "A co ja mogę robić w weekend. "
+                "A co ja mogę robić w weekend. ",
                 file=discord.File(os.path.join(folder, img))
             )
         else:
             await message.channel.send(
-                "Wybaczcie byłem na łące all inclusive i musiałem wypocząć, ale już jestem ❤️. "
-                "Podczas wypoczynku spotkałem 'pewną ślicznotkę' to podeślę wam zdjęcie ❤️ (ale brak obrazków w folderze!)"
+                "A co ja mogę robić w weekend. (ale brak obrazków w folderze!)"
             )
 
         await bot.process_commands(message)
