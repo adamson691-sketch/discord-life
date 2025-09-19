@@ -252,8 +252,8 @@ async def on_message(message: discord.Message):
 
         if img:
             await message.channel.send(
-                "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3 "
                 "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3 ",
+    
                 file=discord.File(os.path.join(folder, img))
             )
         else:
