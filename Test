@@ -1,0 +1,231 @@
+# main.py
+import os
+import sys
+import discord
+import asyncio
+import aiohttp
+import random
+import re
+import pytz
+from discord.ext import commands
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from keep_alive import keep_alive  # serwer do podtrzymania na Render
+
+# ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
+TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())
+CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
+
+print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
+print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
+
+if not TOKEN:
+    print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Environment Variables).")
+    sys.exit(1)
+
+try:
+    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
+except ValueError:
+    CHANNEL_ID = None
+
+if CHANNEL_ID is None:
+    print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
+    sys.exit(1)
+
+# ─── Bot ───────────────────────────────────────────────────────────────────────
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+seen_memes: list[str] = []
+seen_images: list[str] = []
+recent_responses: list[str] = []
+
+# ─── Pobieranie stron ─────────────────────────────────────────────────────────
+async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
+    try:
+        async with session.get(url, headers={"User-Agent": "Mozilla/5.0"}) as r:
+            if r.status != 200:
+                return None
+            return await r.text()
+    except Exception:
+        return None
+
+# ─── Scrapery (zwracają (url, źródło)) ─────────────────────────────────────────
+async def get_meme_from_jeja():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://jeja.pl/")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://i\.jeja\.pl/[^\"]+)"', html)
+        return (random.choice(imgs), "Jeja") if imgs else None
+
+async def get_meme_from_besty():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://besty.pl/")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://img\.besty\.pl/[^\"]+)"', html)
+        return (random.choice(imgs), "Besty") if imgs else None
+
+async def get_meme_from_wykop():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://wykop.pl/hity")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://[^\"]+\.jpg)"', html)
+        return (random.choice(imgs), "Wykop") if imgs else None
+
+async def get_meme_from_memypl():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://memy.pl/")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://memy\.pl/memes/[^\"]+)"', html)
+        return (random.choice(imgs), "Memy.pl") if imgs else None
+
+async def get_meme_from_9gag():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://9gag.com/")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://img-9gag-fun\.9cache\.com/photo/[^\"]+)"', html)
+        return (random.choice(imgs), "9GAG") if imgs else None
+
+async def get_meme_from_demotywatory():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://demotywatory.pl/")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"', html)
+        return (random.choice(imgs), "Demotywatory") if imgs else None
+
+async def get_meme_from_kwejk():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://kwejk.pl/")
+        if not html:
+            return None
+        imgs = re.findall(r'src="(https://i1\.kwejk\.pl/k/[^\"]+)"', html)
+        return (random.choice(imgs), "Kwejk") if imgs else None
+
+# ─── Losowanie memów ──────────────────────────────────────────────────────────
+async def get_random_memes(count: int = 2):
+    memes: list[tuple[str, str]] = []  # (url, źródło)
+    funcs = [
+        get_meme_from_jeja,
+        get_meme_from_besty,
+        get_meme_from_wykop,
+        get_meme_from_memypl,
+        get_meme_from_9gag,
+        get_meme_from_demotywatory,
+        get_meme_from_kwejk,
+    ]
+
+    attempts = 0
+    while len(memes) < count and attempts < 15:
+        func = random.choice(funcs)
+        meme = await func()
+        attempts += 1
+
+        if meme and meme[0] not in seen_memes:
+            memes.append(meme)
+            seen_memes.append(meme[0])
+            if len(seen_memes) > 20:
+                seen_memes.pop(0)
+
+    return memes
+
+# ─── Losowe komentarze ────────────────────────────────────────────────────────
+meme_comments = [
+    "XD",
+    "🔥🔥🔥",
+    "idealny na dziś",
+    "no i sztos",
+    "😂😂😂",
+    "aż się popłakałem",
+    "ten mem to złoto",
+    "classic",
+    "to chyba o mnie",
+    "💀💀💀",
+]
+
+def get_random_comment():
+    return random.choice(meme_comments) if random.random() < 0.6 else ""  # 60% szans na komentarz
+
+# ─── Wysyłanie memów ──────────────────────────────────────────────────────────
+async def send_memes():
+    channel = bot.get_channel(CHANNEL_ID)
+    if channel is None:
+        print(f"❌ Nie znaleziono kanału o ID {CHANNEL_ID}.")
+        return
+
+    memes = await get_random_memes(2)
+    if memes:
+        for url, source in memes:
+            comment = get_random_comment()
+            text = f"📸 Mem ze strony **{source}**:\n{url}"
+            if comment:
+                text += f"\n💬 {comment}"
+            await channel.send(text)
+    else:
+        await channel.send("⚠️ Nie udało się znaleźć memów!")
+
+# ─── Obsługa wiadomości ───────────────────────────────────────────────────────
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    if message.content.strip().lower() == "memy":
+        memes = await get_random_memes(2)
+        if memes:
+            for url, source in memes:
+                comment = get_random_comment()
+                text = f"📸 Mem ze strony **{source}**:\n{url}"
+                if comment:
+                    text += f"\n💬 {comment}"
+                await message.channel.send(text)
+        else:
+            await message.channel.send("⚠️ Nie udało się znaleźć memów!")
+        await bot.process_commands(message)
+        return
+
+    # inne reakcje zostają bez zmian
+    await bot.process_commands(message)
+
+# ─── Harmonogram ──────────────────────────────────────────────────────────────
+async def schedule_memes():
+    tz = pytz.timezone("Europe/Warsaw")
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        now = datetime.now(tz)
+        targets = [(12, 0), (21, 37)]
+        next_time = None
+
+        for hour, minute in targets:
+            t = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+            if t > now:
+                next_time = t
+                break
+
+        if not next_time:
+            next_time = tz.localize(datetime(now.year, now.month, now.day, 11, 0)) + timedelta(days=1)
+
+        wait_seconds = max(1, int((next_time - now).total_seconds()))
+        print(f"⏳ Czekam {wait_seconds/3600:.2f}h do wysyłki")
+        await asyncio.sleep(wait_seconds)
+        await send_memes()
+
+# ─── Start ─────────────────────────────────────────────────────────────────────
+@bot.event
+async def on_ready():
+    print(f"✅ Zalogowano jako {bot.user} (ID: {bot.user.id})")
+
+async def main():
+    keep_alive()
+    async with bot:
+        asyncio.create_task(schedule_memes())
+        await bot.start(TOKEN)
+
+if __name__ == "__main__":
+    asyncio.run(main())
