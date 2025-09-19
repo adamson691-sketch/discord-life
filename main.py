@@ -70,7 +70,7 @@ async def get_meme_from_jeja():
         if not html:
             return None
         imgs = re.findall(r'src="(https://i\.jeja\.pl/[^\"]+)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "Jeja") if imgs else None
 
 async def get_meme_from_besty():
     async with aiohttp.ClientSession() as s:
@@ -78,7 +78,7 @@ async def get_meme_from_besty():
         if not html:
             return None
         imgs = re.findall(r'src="(https://img\.besty\.pl/[^\"]+)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "Besty") if imgs else None
 
 async def get_meme_from_wykop():
     async with aiohttp.ClientSession() as s:
@@ -86,7 +86,7 @@ async def get_meme_from_wykop():
         if not html:
             return None
         imgs = re.findall(r'src="(https://[^\"]+\.jpg)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "Wykop") if imgs else None
 
 async def get_meme_from_memypl():
     async with aiohttp.ClientSession() as s:
@@ -94,7 +94,7 @@ async def get_meme_from_memypl():
         if not html:
             return None
         imgs = re.findall(r'src="(https://memy\.pl/memes/[^\"]+)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "Memy.pl") if imgs else None
 
 async def get_meme_from_9gag():
     async with aiohttp.ClientSession() as s:
@@ -102,7 +102,7 @@ async def get_meme_from_9gag():
         if not html:
             return None
         imgs = re.findall(r'src="(https://img-9gag-fun\.9cache\.com/photo/[^\"]+)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "9GAG") if imgs else None
 
 async def get_meme_from_demotywatory():
     async with aiohttp.ClientSession() as s:
@@ -110,7 +110,7 @@ async def get_meme_from_demotywatory():
         if not html:
             return None
         imgs = re.findall(r'src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "Demotywatory") if imgs else None
 
 async def get_meme_from_kwejk():
     async with aiohttp.ClientSession() as s:
@@ -118,7 +118,7 @@ async def get_meme_from_kwejk():
         if not html:
             return None
         imgs = re.findall(r'src="(https://i1\.kwejk\.pl/k/[^\"]+)"', html)
-        return random.choice(imgs) if imgs else None
+        return (random.choice(imgs), "Kwejk") if imgs else None
 
 # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 async def get_random_memes(count: int = 2):
@@ -146,6 +146,25 @@ async def get_random_memes(count: int = 2):
                 seen_memes.pop(0)
 
     return memes
+
+# ─── Losowe komentarze ────────────────────────────────────────────────────────
+meme_comments = [
+    "XD",
+    "🔥🔥🔥",
+    "idealny na dziś",
+    "no i sztos",
+    "😂😂😂",
+    "aż się popłakałem",
+    "ten mem to złoto",
+    "classic",
+    "to chyba o mnie",
+    "💀💀💀",
+]
+
+def get_random_comment():
+    return random.choice(meme_comments) if random.random() < 0.6 else ""  # 60% szans na komentarz
+
+
 
 # ─── Wysyłanie memów ──────────────────────────────────────────────────────────
 async def send_memes():
