@@ -80,13 +80,6 @@ async def get_meme_from_besty():
         imgs = re.findall(r'src="(https://img\.besty\.pl/[^\"]+)"', html)
         return (random.choice(imgs), "Besty") if imgs else None
 
-async def get_meme_from_wykop():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://wykop.pl/hity")
-        if not html:
-            return None
-        imgs = re.findall(r'src="(https://[^\"]+\.jpg)"', html)
-        return (random.choice(imgs), "Wykop") if imgs else None
 
 async def get_meme_from_memypl():
     async with aiohttp.ClientSession() as s:
@@ -112,13 +105,6 @@ async def get_meme_from_demotywatory():
         imgs = re.findall(r'src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"', html)
         return (random.choice(imgs), "Demotywatory") if imgs else None
 
-async def get_meme_from_kwejk():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://kwejk.pl/")
-        if not html:
-            return None
-        imgs = re.findall(r'src="(https://i1\.kwejk\.pl/k/[^\"]+)"', html)
-        return (random.choice(imgs), "Kwejk") if imgs else None
 
 # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 async def get_random_memes(count: int = 2):
@@ -126,11 +112,10 @@ async def get_random_memes(count: int = 2):
     funcs = [
         get_meme_from_jeja,
         get_meme_from_besty,
-        get_meme_from_wykop,
         get_meme_from_memypl,
         get_meme_from_9gag,
         get_meme_from_demotywatory,
-        get_meme_from_kwejk,
+        ,
     ]
 
     attempts = 0
