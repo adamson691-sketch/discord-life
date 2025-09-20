@@ -115,7 +115,6 @@ async def get_random_memes(count: int = 2):
         get_meme_from_memypl,
         get_meme_from_9gag,
         get_meme_from_demotywatory,
-        ,
     ]
 
     attempts = 0
@@ -147,7 +146,7 @@ meme_comments = [
 ]
 
 def get_random_comment():
-    return random.choice(meme_comments) if random.random() < 0.6 else ""  # 60% szans na komentarz
+    return random.choice(meme_comments) if random.random() < 0.7 else ""  # 60% szans na komentarz
 
 
 
