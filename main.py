@@ -134,6 +134,52 @@ async def get_meme_from_strefabeki():
                 imgs.append(src)
         return (random.choice(imgs), "Strefa-beki") if imgs else None
 
+    # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
+seen_memes: list[str] = []
+
+async def get_random_memes(count: int = 2):
+    memes: list[tuple[str, str]] = []
+    funcs = [
+        get_meme_from_jeja,
+        get_meme_from_besty,
+        get_meme_from_memypl,
+        get_meme_from_9gag,
+        get_meme_from_demotywatory,
+        get_meme_from_strefabeki,
+    ]
+
+    attempts = 0
+    while len(memes) < count and attempts < 20:
+        func = random.choice(funcs)
+        meme = await func()
+        attempts += 1
+
+        if meme and meme not in seen_memes and meme not in memes:
+            memes.append(meme)
+            seen_memes.append(meme)
+            if len(seen_memes) > 20:
+                seen_memes.pop(0)
+
+    return memes
+
+
+# ─── Losowe komentarze ────────────────────────────────────────────────────────
+meme_comments = [
+    "XD",
+    "🔥🔥🔥",
+    "idealny na dziś",
+    "no i sztos",
+    "😂😂😂",
+    "aż się popłakałem",
+    "ten mem to złoto",
+    "classic",
+    "to chyba o mnie",
+    "💀💀💀",
+]
+
+def get_random_comment():
+    return random.choice(meme_comments) if random.random() < 0.7 else ""  
+
 
     # ❤️ reakcja
     if message.content.strip() in ["❤️", "<3"]:
