@@ -179,7 +179,7 @@ meme_comments = [
 
 def get_random_comment():
     return random.choice(meme_comments) if random.random() < 0.7 else ""  
-    ─── Komendy ──────────────────────────────────────────────────────────────────
+ #─── Komendy ──────────────────────────────────────────────────────────────────
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
