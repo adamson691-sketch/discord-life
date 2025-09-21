@@ -63,13 +63,14 @@ async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
     except Exception:
         return None
 
+
 # ─── Scrapery ─────────────────────────────────────────────────────────────────
 async def get_meme_from_jeja():
     async with aiohttp.ClientSession() as s:
         html = await fetch(s, "https://jeja.pl/")
         if not html:
             return None
-        imgs = re.findall(r'src="(https://i\.jeja\.pl/[^\"]+)"', html)
+        imgs = re.findall(r'https://i\.jeja\.pl/[^\s"]+', html)
         return (random.choice(imgs), "Jeja") if imgs else None
 
 async def get_meme_from_besty():
@@ -77,16 +78,15 @@ async def get_meme_from_besty():
         html = await fetch(s, "https://besty.pl/")
         if not html:
             return None
-        imgs = re.findall(r'src="(https://img\.besty\.pl/[^\"]+)"', html)
+        imgs = re.findall(r'https://img\.besty\.pl/[^\s"]+', html)
         return (random.choice(imgs), "Besty") if imgs else None
-
 
 async def get_meme_from_memypl():
     async with aiohttp.ClientSession() as s:
         html = await fetch(s, "https://memy.pl/")
         if not html:
             return None
-        imgs = re.findall(r'src="(https://memy\.pl/memes/[^\"]+)"', html)
+        imgs = re.findall(r'https://memy\.pl/memes/[^\s"]+', html)
         return (random.choice(imgs), "Memy.pl") if imgs else None
 
 async def get_meme_from_9gag():
@@ -94,7 +94,7 @@ async def get_meme_from_9gag():
         html = await fetch(s, "https://9gag.com/")
         if not html:
             return None
-        imgs = re.findall(r'src="(https://img-9gag-fun\.9cache\.com/photo/[^\"]+)"', html)
+        imgs = re.findall(r'https://img-9gag-fun\.9cache\.com/photo/[^\s"]+', html)
         return (random.choice(imgs), "9GAG") if imgs else None
 
 async def get_meme_from_demotywatory():
@@ -102,13 +102,12 @@ async def get_meme_from_demotywatory():
         html = await fetch(s, "https://demotywatory.pl/")
         if not html:
             return None
-        imgs = re.findall(r'src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"', html)
+        imgs = re.findall(r'https://img\.demotywatory\.pl/uploads/[^\s"]+', html)
         return (random.choice(imgs), "Demotywatory") if imgs else None
-
 
 # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 async def get_random_memes(count: int = 2):
-    memes: list[str] = []
+    memes: list[tuple[str, str]] = []
     funcs = [
         get_meme_from_jeja,
         get_meme_from_besty,
@@ -146,11 +145,8 @@ meme_comments = [
 ]
 
 def get_random_comment():
-    return random.choice(meme_comments) if random.random() < 0.7 else ""  # 60% szans na komentarz
-
-
-
-# ─── Wysyłanie memów ──────────────────────────────────────────────────────────
+    return random.choice(meme_comments) if random.random() < 0.7 else ""  # 70% szans na komentarz
+# ─── Wysyłanie memów ────────────────────────────────────────────────────
 async def send_memes():
     channel = bot.get_channel(CHANNEL_ID)
     if channel is None:
