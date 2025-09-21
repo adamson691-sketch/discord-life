@@ -104,6 +104,14 @@ async def get_meme_from_demotywatory():
             return None
         imgs = re.findall(r'https://img\.demotywatory\.pl/uploads/[^\s"]+', html)
         return (random.choice(imgs), "Demotywatory") if imgs else None
+        
+async def get_meme_from_strefabeki():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://strefa-beki.pl/")
+        if not html:
+            return None
+        imgs = re.findall(r'https://strefa-beki\.pl/upload/[^\s"]+', html)
+        return (random.choice(imgs), "Strefa Beki") if imgs else None
 
 # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 async def get_random_memes(count: int = 2):
@@ -114,6 +122,7 @@ async def get_random_memes(count: int = 2):
         get_meme_from_memypl,
         get_meme_from_9gag,
         get_meme_from_demotywatory,
+        get_meme_from_strefabeki,
     ]
 
     attempts = 0
