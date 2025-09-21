@@ -143,17 +143,15 @@ async def get_meme_from_strefabeki():
 
 # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 async def get_random_memes(count: int = 2):
-    memes: list[tuple[str, str]] = []
-    
-funcs = [
-    get_meme_from_jeja,
-    get_meme_from_besty,
-    get_meme_from_memypl,
-    get_meme_from_9gag,
-    get_meme_from_demotywatory,
-    get_meme_from_strefabeki,
-]
-
+    memes: list[str] = []
+    funcs = [
+        get_meme_from_jeja,
+        get_meme_from_besty,
+        get_meme_from_memypl,
+        get_meme_from_9gag,
+        get_meme_from_demotywatory,
+        get_meme_from_strefabeki,
+    ]
 
     attempts = 0
     while len(memes) < count and attempts < 15:
@@ -168,6 +166,7 @@ funcs = [
                 seen_memes.pop(0)
 
     return memes
+
 
 # ─── Losowe komentarze ────────────────────────────────────────────────────────
 meme_comments = [
