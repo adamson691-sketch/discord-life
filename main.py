@@ -179,6 +179,21 @@ meme_comments = [
 
 def get_random_comment():
     return random.choice(meme_comments) if random.random() < 0.7 else ""  
+    ─── Komendy ──────────────────────────────────────────────────────────────────
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+        
+    if message.content.strip().lower() == "memy":
+        memes = await get_random_memes(2)
+        if memes:
+            for m in memes:
+                await message.channel.send(m)
+        else:
+            await message.channel.send("⚠️ Nie udało się znaleźć memów!")
+        await bot.process_commands(message)
+        return
 
 
     # ❤️ reakcja
