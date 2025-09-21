@@ -3,6 +3,7 @@ import os
 import sys
 import discord
 import asyncio
+from bs4 import BeautifulSoup
 import aiohttp
 import random
 import re
@@ -63,25 +64,25 @@ async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
     except Exception:
         return None
 
-# ─── Scrapery ─────────────────────────────────────────────────────────────────
 
-def extract_images(html: str, patterns: list[str]) -> list[str]:
-    imgs = []
-    for pattern in patterns:
-        found = re.findall(pattern, html)
-        imgs.extend(found)
-    return imgs
+# ─── Funkcja pomocnicza ─────────────────────────────────────────────
+async def fetch(session, url: str) -> str | None:
+    try:
+        async with session.get(url, timeout=10) as resp:
+            if resp.status == 200:
+                return await resp.text()
+    except Exception as e:
+        print(f"Błąd pobierania {url}: {e}")
+    return None
 
+# ─── Scrapery ───────────────────────────────────────────────────────
 async def get_meme_from_jeja():
     async with aiohttp.ClientSession() as s:
         html = await fetch(s, "https://jeja.pl/")
         if not html:
             return None
-        imgs = extract_images(html, [
-            r'src="(https://i\.jeja\.pl/[^\"]+)"',
-            r'data-src="(https://i\.jeja\.pl/[^\"]+)"',
-            r'srcset="(https://i\.jeja\.pl/[^\s"]+)',
-        ])
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "i.jeja.pl" in img.get("src")]
         return (random.choice(imgs), "Jeja") if imgs else None
 
 async def get_meme_from_besty():
@@ -89,11 +90,8 @@ async def get_meme_from_besty():
         html = await fetch(s, "https://besty.pl/")
         if not html:
             return None
-        imgs = extract_images(html, [
-            r'src="(https://img\.besty\.pl/[^\"]+)"',
-            r'data-src="(https://img\.besty\.pl/[^\"]+)"',
-            r'srcset="(https://img\.besty\.pl/[^\s"]+)',
-        ])
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "img.besty.pl" in img.get("src")]
         return (random.choice(imgs), "Besty") if imgs else None
 
 async def get_meme_from_memypl():
@@ -101,10 +99,8 @@ async def get_meme_from_memypl():
         html = await fetch(s, "https://memy.pl/")
         if not html:
             return None
-        imgs = extract_images(html, [
-            r'src="(https://memy\.pl/memes/[^\"]+)"',
-            r'data-src="(https://memy\.pl/memes/[^\"]+)"',
-        ])
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "memy.pl/memes/" in img.get("src")]
         return (random.choice(imgs), "Memy.pl") if imgs else None
 
 async def get_meme_from_9gag():
@@ -112,10 +108,8 @@ async def get_meme_from_9gag():
         html = await fetch(s, "https://9gag.com/")
         if not html:
             return None
-        imgs = extract_images(html, [
-            r'src="(https://img-9gag-fun\.9cache\.com/photo/[^\"]+)"',
-            r'data-src="(https://img-9gag-fun\.9cache\.com/photo/[^\"]+)"',
-        ])
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "9cache.com/photo/" in img.get("src")]
         return (random.choice(imgs), "9GAG") if imgs else None
 
 async def get_meme_from_demotywatory():
@@ -123,10 +117,8 @@ async def get_meme_from_demotywatory():
         html = await fetch(s, "https://demotywatory.pl/")
         if not html:
             return None
-        imgs = extract_images(html, [
-            r'src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"',
-            r'data-src="(https://img\.demotywatory\.pl/uploads/[^\"]+)"',
-        ])
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "img.demotywatory.pl/uploads/" in img.get("src")]
         return (random.choice(imgs), "Demotywatory") if imgs else None
 
 async def get_meme_from_strefabeki():
@@ -134,86 +126,14 @@ async def get_meme_from_strefabeki():
         html = await fetch(s, "https://strefa-beki.pl/")
         if not html:
             return None
-        imgs = extract_images(html, [
-            r'src="(https://strefa-beki\.pl/wp-content/uploads/[^\"]+)"',
-            r'data-src="(https://strefa-beki\.pl/wp-content/uploads/[^\"]+)"',
-        ])
-        return (random.choice(imgs), "Strefa Beki") if imgs else None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = []
+        for img in soup.find_all("img"):
+            src = img.get("data-src") or img.get("src")
+            if src and src.startswith("http") and (".jpg" in src or ".png" in src or ".jpeg" in src):
+                imgs.append(src)
+        return (random.choice(imgs), "Strefa-beki") if imgs else None
 
-
-# ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
-async def get_random_memes(count: int = 2):
-    memes: list[str] = []
-    funcs = [
-        get_meme_from_jeja,
-        get_meme_from_besty,
-        get_meme_from_memypl,
-        get_meme_from_9gag,
-        get_meme_from_demotywatory,
-        get_meme_from_strefabeki,
-    ]
-
-    attempts = 0
-    while len(memes) < count and attempts < 15:
-        func = random.choice(funcs)
-        meme = await func()
-        attempts += 1
-
-        if meme and meme not in seen_memes and meme not in memes:
-            memes.append(meme)
-            seen_memes.append(meme)
-            if len(seen_memes) > 20:
-                seen_memes.pop(0)
-
-    return memes
-
-
-# ─── Losowe komentarze ────────────────────────────────────────────────────────
-meme_comments = [
-    "XD",
-    "🔥🔥🔥",
-    "idealny na dziś",
-    "no i sztos",
-    "😂😂😂",
-    "aż się popłakałem",
-    "ten mem to złoto",
-    "classic",
-    "to chyba o mnie",
-    "💀💀💀",
-]
-
-def get_random_comment():
-    return random.choice(meme_comments) if random.random() < 0.7 else ""  # 70% szans na komentarz
-# ─── Wysyłanie memów ────────────────────────────────────────────────────
-async def send_memes():
-    channel = bot.get_channel(CHANNEL_ID)
-    if channel is None:
-        print(f"❌ Nie znaleziono kanału o ID {CHANNEL_ID}.")
-        return
-
-    memes = await get_random_memes(2)
-    if memes:
-        for m in memes:
-            await channel.send(m)
-    else:
-        await channel.send("⚠️ Nie udało się znaleźć memów!")
-
-
-# ─── Obsługa wiadomości ───────────────────────────────────────────────────────
-@bot.event
-async def on_message(message: discord.Message):
-    if message.author == bot.user:
-        return
-
-    if message.content.strip().lower() == "memy":
-        memes = await get_random_memes(2)
-        if memes:
-            for m in memes:
-                await message.channel.send(m)
-        else:
-            await message.channel.send("⚠️ Nie udało się znaleźć memów!")
-        await bot.process_commands(message)
-        return
 
     # ❤️ reakcja
     if message.content.strip() in ["❤️", "<3"]:
