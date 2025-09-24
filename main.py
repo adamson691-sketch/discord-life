@@ -72,17 +72,6 @@ async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
     except Exception:
         return None
 
-
-# ─── Funkcja pomocnicza ─────────────────────────────────────────────
-async def fetch(session, url: str) -> str | None:
-    try:
-        async with session.get(url, timeout=10) as resp:
-            if resp.status == 200:
-                return await resp.text()
-    except Exception as e:
-        print(f"Błąd pobierania {url}: {e}")
-    return None
-
 # ─── Scrapery ────────────────────────────────────────────────────────────────
 headers = {"User-Agent": "Mozilla/5.0"}
 
@@ -197,10 +186,6 @@ async def get_meme_from_memowo():
         return random.choice(imgs) if imgs else None
 
 
-
-    # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
-seen_memes: list[str] = []
-
 async def get_random_memes(count: int = 2):
     memes: list[tuple[str, str]] = []
     funcs = [
@@ -268,7 +253,7 @@ async def on_message(message: discord.Message):
 
 
     # ❤️ reakcja
-if message.content.strip() in ["❤️", "<3"]:
+    if message.content.strip() in ["❤️", "<3"]:
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
             "Sztefyn mówi I LOVE, ty mówisz YOU",
@@ -355,22 +340,7 @@ if message.content.strip() in ["❤️", "<3"]:
         await bot.process_commands(message)
         return
 
-    # ─── Reakcja 🔥 ───────────────────────────────#
-    if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
-        folder = "hot"
-        img = None
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                img = random.choice(files)
 
-        if img:
-            await message.channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, img)))
-        else:
-            await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
-
-        await bot.process_commands(message)
-        return
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
     if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
         folder = "hot"
