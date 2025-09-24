@@ -25,6 +25,14 @@ CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
 print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
 print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
+# pobierz ID kanału na serca (może być inny niż główny)
+HEART_CHANNEL_ID_RAW = os.environ.get("HEART_CHANNEL_ID", "").strip()
+try:
+    HEART_CHANNEL_ID = int(HEART_CHANNEL_ID_RAW) if HEART_CHANNEL_ID_RAW else None
+except ValueError:
+    HEART_CHANNEL_ID = None
+
+
 # walidacja tokena
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Environment Variables).")
@@ -260,7 +268,16 @@ async def on_message(message: discord.Message):
 
 
     # ❤️ reakcja
-    if message.content.strip() in ["❤️", "<3"]:
+if message.content.strip() in ["❤️", "<3"]:
+    ...
+    # wybieramy kanał docelowy
+    target_channel = bot.get_channel(HEART_CHANNEL_ID) if HEART_CHANNEL_ID else message.channel
+
+    if img:
+        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+    else:
+        await target_channel.send(response_text)
+
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
             "Sztefyn mówi I LOVE, ty mówisz YOU",
