@@ -6,11 +6,9 @@ import asyncio
 from bs4 import BeautifulSoup
 import aiohttp
 import random
-import re
 import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
@@ -187,7 +185,7 @@ async def get_meme_from_memowo():
 
 
 async def get_random_memes(count: int = 2):
-    memes: list[tuple[str, str]] = []
+    memes: list[str] = []
     funcs = [
         get_meme_from_jeja,
         get_meme_from_besty,
@@ -200,9 +198,7 @@ async def get_random_memes(count: int = 2):
         get_meme_from_memsekcja,
         get_meme_from_paczaizm,
         get_meme_from_memowo,
-]
-
-
+    ]
 
     attempts = 0
     while len(memes) < count and attempts < 20:
@@ -217,7 +213,6 @@ async def get_random_memes(count: int = 2):
                 seen_memes.pop(0)
 
     return memes
-
 
 # ─── Losowe komentarze ────────────────────────────────────────────────────────
 meme_comments = [
@@ -253,7 +248,7 @@ async def on_message(message: discord.Message):
 
 
     # ❤️ reakcja
-    if message.content.strip().lower() in ["<3", "❤", "❤️"]:
+    if message.content.strip().replace(" ", "") in ["<3", "❤", "❤️", "♥️", "♥"]:
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
             "Sztefyn mówi I LOVE, ty mówisz YOU",
@@ -317,7 +312,7 @@ async def on_message(message: discord.Message):
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
-    if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
+    if message.content.strip().lower().replace("?", "") == "sztefyn, co będziesz robił w weekend":
         folder = "photo"
         img = None
 
@@ -362,6 +357,22 @@ async def on_message(message: discord.Message):
 
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
+async def send_memes():
+    channel = bot.get_channel(CHANNEL_ID)
+    if not channel:
+        print("❌ Nie znaleziono kanału do wysyłki memów")
+        return
+
+    memes = await get_random_memes(2)
+    if memes:
+        for m in memes:
+            comment = get_random_comment()
+            if comment:
+                await channel.send(f"{comment}\n{m}")
+            else:
+                await channel.send(m)
+    else:
+        await channel.send("⚠️ Nie udało się znaleźć memów!")
 async def schedule_memes():
     tz = pytz.timezone("Europe/Warsaw")
     await bot.wait_until_ready()
