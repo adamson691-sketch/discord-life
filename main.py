@@ -75,71 +75,81 @@ async def fetch(session, url: str) -> str | None:
         print(f"Błąd pobierania {url}: {e}")
     return None
 
-# ─── Scrapery ────────────────────────────────────────────────────────────────
-async def get_meme_from_jeja():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://jeja.pl/")
+# ─── Scrapery dodatkowe ────────────────────────────────────────────────────────
+async def get_meme_from_chamsko():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://chamsko.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img["src"] for img in soup.find_all("img") if "i.jeja.pl" in img.get("src", "")]
-        print("DEBUG Jeja:", imgs[:3])
-        return (random.choice(imgs), "Jeja") if imgs else None
+        imgs = []
+        for img in soup.find_all("img"):
+            link = img.get("src") or img.get("data-src")
+            if link and "chamsko.pl" in link:
+                imgs.append(link)
+        print("DEBUG Chamsko:", imgs[:5])
+        return (random.choice(imgs), "Chamsko") if imgs else None
 
 
-async def get_meme_from_besty():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://besty.pl/")
+async def get_meme_from_memland():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://memland.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img["src"] for img in soup.find_all("img") if "img.besty.pl" in img.get("src", "")]
-        print("DEBUG Besty:", imgs[:3])
-        return (random.choice(imgs), "Besty") if imgs else None
+        imgs = []
+        for img in soup.find_all("img"):
+            link = img.get("src") or img.get("data-src")
+            if link and "memland.pl" in link:
+                imgs.append(link)
+        print("DEBUG Memland:", imgs[:5])
+        return (random.choice(imgs), "Memland") if imgs else None
 
 
-async def get_meme_from_demotywatory():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://demotywatory.pl/")
+async def get_meme_from_memsekcja():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://memsekcja.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img["src"] for img in soup.find_all("img") if "img.demotywatory.pl/uploads" in img.get("src", "")]
-        print("DEBUG Demotywatory:", imgs[:3])
-        return (random.choice(imgs), "Demotywatory") if imgs else None
+        imgs = []
+        for img in soup.find_all("img"):
+            link = img.get("src") or img.get("data-src")
+            if link and "memsekcja.pl" in link:
+                imgs.append(link)
+        print("DEBUG Memsekcja:", imgs[:5])
+        return (random.choice(imgs), "Memsekcja") if imgs else None
 
 
-async def get_meme_from_memypl():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://memy.pl/")
+async def get_meme_from_paczaizm():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://paczaizm.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img["src"] for img in soup.find_all("img") if "memy.pl/memes/" in img.get("src", "")]
-        print("DEBUG Memy.pl:", imgs[:3])
-        return (random.choice(imgs), "Memy.pl") if imgs else None
+        imgs = []
+        for img in soup.find_all("img"):
+            link = img.get("src") or img.get("data-src")
+            if link and "paczaizm.pl" in link:
+                imgs.append(link)
+        print("DEBUG Paczaizm:", imgs[:5])
+        return (random.choice(imgs), "Paczaizm") if imgs else None
 
 
-async def get_meme_from_9gag():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://9gag.com/")
+async def get_meme_from_memowo():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://memowo.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img["src"] for img in soup.find_all("img") if "img-9gag-fun.9cache.com/photo" in img.get("src", "")]
-        print("DEBUG 9GAG:", imgs[:3])
-        return (random.choice(imgs), "9GAG") if imgs else None
+        imgs = []
+        for img in soup.find_all("img"):
+            link = img.get("src") or img.get("data-src")
+            if link and "memowo.pl" in link:
+                imgs.append(link)
+        print("DEBUG Memowo:", imgs[:5])
+        return (random.choice(imgs), "Memowo") if imgs else None
 
-
-async def get_meme_from_strefabeki():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://strefabeki.pl/")
-        if not html:
-            return None
-        soup = BeautifulSoup(html, "html.parser")
-        imgs = [img["src"] for img in soup.find_all("img") if "strefabeki.pl" in img.get("src", "")]
-        print("DEBUG StrefaBeki:", imgs[:3])
-        return (random.choice(imgs), "Strefa-beki") if imgs else None
 
     # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
 seen_memes: list[str] = []
@@ -147,13 +157,19 @@ seen_memes: list[str] = []
 async def get_random_memes(count: int = 2):
     memes: list[tuple[str, str]] = []
     funcs = [
-    get_meme_from_jeja,
-    get_meme_from_besty,
-    get_meme_from_memypl,
-    get_meme_from_9gag,
-    get_meme_from_demotywatory,
-    get_meme_from_strefabeki,
+        get_meme_from_jeja,
+        get_meme_from_besty,
+        get_meme_from_memypl,
+        get_meme_from_9gag,
+        get_meme_from_demotywatory,
+        get_meme_from_strefabeki,
+        get_meme_from_chamsko,
+        get_meme_from_memland,
+        get_meme_from_memsekcja,
+        get_meme_from_paczaizm,
+        get_meme_from_memowo,
 ]
+
 
 
     attempts = 0
