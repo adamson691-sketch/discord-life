@@ -332,8 +332,8 @@ if message.content.strip() in ["❤️", "<3"]:
         await bot.process_commands(message)
         return
 
-    # ─── Reakcja "uyu" ───────────────────────────────#
-    if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
+# ─── Reakcja "uyu" ───────────────────────────────#
+if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
             folder = "photo"
             img = None
     
