@@ -75,15 +75,17 @@ async def fetch(session, url: str) -> str | None:
         print(f"Błąd pobierania {url}: {e}")
     return None
 
-# ─── Scrapery ───────────────────────────────────────────────────────
+# ─── Scrapery ────────────────────────────────────────────────────────────────
 async def get_meme_from_jeja():
     async with aiohttp.ClientSession() as s:
         html = await fetch(s, "https://jeja.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "i.jeja.pl" in img.get("src")]
+        imgs = [img["src"] for img in soup.find_all("img") if "i.jeja.pl" in img.get("src", "")]
+        print("DEBUG Jeja:", imgs[:3])
         return (random.choice(imgs), "Jeja") if imgs else None
+
 
 async def get_meme_from_besty():
     async with aiohttp.ClientSession() as s:
@@ -91,26 +93,10 @@ async def get_meme_from_besty():
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "img.besty.pl" in img.get("src")]
+        imgs = [img["src"] for img in soup.find_all("img") if "img.besty.pl" in img.get("src", "")]
+        print("DEBUG Besty:", imgs[:3])
         return (random.choice(imgs), "Besty") if imgs else None
 
-async def get_meme_from_memypl():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://memy.pl/")
-        if not html:
-            return None
-        soup = BeautifulSoup(html, "html.parser")
-        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "memy.pl/memes/" in img.get("src")]
-        return (random.choice(imgs), "Memy.pl") if imgs else None
-
-async def get_meme_from_9gag():
-    async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://9gag.com/")
-        if not html:
-            return None
-        soup = BeautifulSoup(html, "html.parser")
-        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "9cache.com/photo/" in img.get("src")]
-        return (random.choice(imgs), "9GAG") if imgs else None
 
 async def get_meme_from_demotywatory():
     async with aiohttp.ClientSession() as s:
@@ -118,20 +104,41 @@ async def get_meme_from_demotywatory():
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = [img.get("src") for img in soup.find_all("img") if img.get("src") and "img.demotywatory.pl/uploads/" in img.get("src")]
+        imgs = [img["src"] for img in soup.find_all("img") if "img.demotywatory.pl/uploads" in img.get("src", "")]
+        print("DEBUG Demotywatory:", imgs[:3])
         return (random.choice(imgs), "Demotywatory") if imgs else None
 
-async def get_meme_from_strefabeki():
+
+async def get_meme_from_memypl():
     async with aiohttp.ClientSession() as s:
-        html = await fetch(s, "https://strefa-beki.pl/")
+        html = await fetch(s, "https://memy.pl/")
         if not html:
             return None
         soup = BeautifulSoup(html, "html.parser")
-        imgs = []
-        for img in soup.find_all("img"):
-            src = img.get("data-src") or img.get("src")
-            if src and src.startswith("http") and (".jpg" in src or ".png" in src or ".jpeg" in src):
-                imgs.append(src)
+        imgs = [img["src"] for img in soup.find_all("img") if "memy.pl/memes/" in img.get("src", "")]
+        print("DEBUG Memy.pl:", imgs[:3])
+        return (random.choice(imgs), "Memy.pl") if imgs else None
+
+
+async def get_meme_from_9gag():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://9gag.com/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img["src"] for img in soup.find_all("img") if "img-9gag-fun.9cache.com/photo" in img.get("src", "")]
+        print("DEBUG 9GAG:", imgs[:3])
+        return (random.choice(imgs), "9GAG") if imgs else None
+
+
+async def get_meme_from_strefabeki():
+    async with aiohttp.ClientSession() as s:
+        html = await fetch(s, "https://strefabeki.pl/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img["src"] for img in soup.find_all("img") if "strefabeki.pl" in img.get("src", "")]
+        print("DEBUG StrefaBeki:", imgs[:3])
         return (random.choice(imgs), "Strefa-beki") if imgs else None
 
     # ─── Losowanie memów (z pamięcią 20 ostatnich) ────────────────────────────────
@@ -140,13 +147,14 @@ seen_memes: list[str] = []
 async def get_random_memes(count: int = 2):
     memes: list[tuple[str, str]] = []
     funcs = [
-        get_meme_from_jeja,
-        get_meme_from_besty,
-        get_meme_from_memypl,
-        get_meme_from_9gag,
-        get_meme_from_demotywatory,
-        get_meme_from_strefabeki,
-    ]
+    get_meme_from_jeja,
+    get_meme_from_besty,
+    get_meme_from_memypl,
+    get_meme_from_9gag,
+    get_meme_from_demotywatory,
+    get_meme_from_strefabeki,
+]
+
 
     attempts = 0
     while len(memes) < count and attempts < 20:
