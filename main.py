@@ -333,28 +333,28 @@ if message.content.strip() in ["❤️", "<3"]:
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
-    if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
+        if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
         folder = "photo"
         img = None
 
-        if os.path.exists(folder):
+            if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img = random.choice(files)
 
-        if img:
+            if img:
             await message.channel.send(
                 "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3 ",
     
                 file=discord.File(os.path.join(folder, img))
             )
-        else:
-            await message.channel.send(
+            else:
+                await message.channel.send(
                 "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3  (ale brak obrazków w folderze!)"
-            )
+                )
 
-        await bot.process_commands(message)
-        return
+             await bot.process_commands(message)
+            return
 
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
     if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
