@@ -333,7 +333,7 @@ if message.content.strip() in ["❤️", "<3"]:
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
-        if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
+    if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
         folder = "photo"
         img = None
 
