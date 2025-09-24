@@ -269,15 +269,6 @@ async def on_message(message: discord.Message):
 
     # ❤️ reakcja
 if message.content.strip() in ["❤️", "<3"]:
-    ...
-    # wybieramy kanał docelowy
-    target_channel = bot.get_channel(HEART_CHANNEL_ID) if HEART_CHANNEL_ID else message.channel
-
-    if img:
-        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-    else:
-        await target_channel.send(response_text)
-
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
             "Sztefyn mówi I LOVE, ty mówisz YOU",
@@ -329,11 +320,14 @@ if message.content.strip() in ["❤️", "<3"]:
                 if len(seen_images) > 60:
                     seen_images.pop(0)
 
+        # wybór kanału docelowego
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) if HEART_CHANNEL_ID else message.channel
+
         # wysyłamy dokładnie jedną wiadomość z tekstem i ewentualnym obrazkiem
         if img:
-            await message.channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
-            await message.channel.send(response_text)
+            await target_channel.send(response_text)
 
         await bot.process_commands(message)
         return
