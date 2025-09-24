@@ -333,11 +333,11 @@ if message.content.strip() in ["❤️", "<3"]:
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
-    if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
-        folder = "photo"
-        img = None
+ if message.content.strip() == "Sztefyn, co będziesz robił w weekend?":
+     folder = "photo"
+     img = None
 
-            if os.path.exists(folder):
+        if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img = random.choice(files)
