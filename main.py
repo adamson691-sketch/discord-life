@@ -304,13 +304,10 @@ async def on_message(message: discord.Message):
 
         # wybór kanału docelowego
         target_channel = bot.get_channel(HEART_CHANNEL_ID) if HEART_CHANNEL_ID else message.channel
-
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        if target_channel:
+            await target_channel.send("❤️ Kocham Cię! ❤️")
         else:
-            await target_channel.send(response_text)
-
-        await bot.process_commands(message)
+            await message.channel.send("⚠️ Nie mogę znaleźć kanału docelowego dla ❤️")
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
