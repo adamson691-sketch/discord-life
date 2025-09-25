@@ -47,7 +47,43 @@ if CHANNEL_ID is None:
     print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
     sys.exit(1)
 
+# ─── Ankieta  ───────────────────────────────────────────────────────────────────────
+@bot.command()
+async def ankieta(ctx):
+    folder = "Ankieta"
+    files = glob.glob(os.path.join(folder, "*.txt"))
+    if not files:
+        await ctx.send("⚠️ Brak plików z ankietami w folderze `Ankieta`!")
+        return
 
+    # losowanie pliku
+    file = random.choice(files)
+    with open(file, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    if len(lines) < 2:
+        await ctx.send("⚠️ Plik ankiety musi mieć pytanie i co najmniej jedną opcję!")
+        return
+
+    pytanie = lines[0]
+    opcje = lines[1:]
+
+    description = ""
+    emojis = []
+    for opt in opcje:
+        if " " not in opt:
+            continue
+        emoji, name = opt.split(" ", 1)
+        emojis.append(emoji)
+        description += f"{emoji} {name}\n"
+
+    embed = discord.Embed(title=f"📊 {pytanie}", description=description, color=0x7289da)
+    msg = await ctx.send(embed=embed)
+
+    # dodanie reakcji
+    for emoji in emojis:
+        await msg.add_reaction(emoji)
+        
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
 intents.message_content = True
