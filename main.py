@@ -55,17 +55,17 @@ if CHANNEL_ID is None:
     sys.exit(1)
 
 # ─── Ankieta  ───────────────────────────────────────────────────────────────────────
-@bot.command()
-async def send_ankieta():
-    channel = bot.get_channel(ANKIETA_CHANNEL_ID)
-    if not channel:
+async def send_ankieta(target_channel=None):
+    if not target_channel:
+        target_channel = bot.get_channel(ANKIETA_CHANNEL_ID)
+    if not target_channel:
         print("❌ Nie znaleziono kanału do ankiet")
         return
 
     folder = "Ankieta"
     files = glob.glob(os.path.join(folder, "*.txt"))
     if not files:
-        await channel.send("⚠️ Brak plików z ankietami w folderze `Ankieta`!")
+        await target_channel.send("⚠️ Brak plików z ankietami w folderze `Ankieta`!")
         return
 
     file = random.choice(files)
@@ -73,7 +73,7 @@ async def send_ankieta():
         lines = [line.strip() for line in f if line.strip()]
 
     if len(lines) < 2:
-        await channel.send("⚠️ Plik ankiety musi mieć pytanie i co najmniej jedną opcję!")
+        await target_channel.send("⚠️ Plik ankiety musi mieć pytanie i co najmniej jedną opcję!")
         return
 
     pytanie = lines[0]
@@ -89,7 +89,7 @@ async def send_ankieta():
         description += f"{emoji} {name}\n"
 
     embed = discord.Embed(title=f"📊 {pytanie}", description=description, color=0x7289da)
-    msg = await channel.send(embed=embed)
+    msg = await target_channel.send(embed=embed)
 
     for emoji in emojis:
         await msg.add_reaction(emoji)
@@ -293,6 +293,10 @@ async def on_message(message: discord.Message):
             await message.channel.send("⚠️ Nie udało się znaleźć memów!")
         await bot.process_commands(message)
         return
+
+    async def ankieta(ctx):
+        await send_ankieta()  # <── nie przekazujemy ctx.channel, tylko zawsze ANKIETA_CHANNEL_ID
+        await ctx.message.add_reaction("✅")  # mały feedback że komenda zadziałała
 
 
     # ❤️ reakcja
