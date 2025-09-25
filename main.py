@@ -18,17 +18,17 @@ import sys
 # pobieramy token i ID kanału bez użycia .env
 TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())  # usuwa spacje i nowe linie
 CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
+HEART_CHANNEL_ID_RAW = os.environ.get("HEART_CHANNEL_ID", "").strip()
+try:
+    HEART_CHANNEL_ID = int(HEART_CHANNEL_ID_RAW) if HEART_CHANNEL_ID_RAW else None
+except ValueError:
+    HEART_CHANNEL_ID = None
 
 # debug – sprawdzenie tokena
 print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
 print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
 # pobierz ID kanału na serca (może być inny niż główny)
-HEART_CHANNEL_ID_RAW = os.environ.get("HEART_CHANNEL_ID", "").strip()
-try:
-    HEART_CHANNEL_ID = int(HEART_CHANNEL_ID_RAW) if HEART_CHANNEL_ID_RAW else None
-except ValueError:
-    HEART_CHANNEL_ID = None
 
 
 # walidacja tokena
@@ -249,7 +249,7 @@ async def on_message(message: discord.Message):
 
 
     # ❤️ reakcja
-    if message.content.strip().replace(" ", "") in ["<3", "❤", "❤️", "♥️", "♥"]:
+    if any(heart in message.content.replace(" ", "") for heart in ["<3", "❤", "❤️", "♥️", "♥"]):
         print(f"❤️ Triggered in channel {message.channel.id} by {message.author}")
         print(f"Target channel: {HEART_CHANNEL_ID} | resolved: {bot.get_channel(HEART_CHANNEL_ID)}")
         responses = [
@@ -304,7 +304,7 @@ async def on_message(message: discord.Message):
                     seen_images.pop(0)
 
         # wybór kanału docelowego
-        target_channel = bot.get_channel(HEART_CHANNEL_ID) if HEART_CHANNEL_ID else message.channel
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
 
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
@@ -312,6 +312,7 @@ async def on_message(message: discord.Message):
             await target_channel.send(response_text)
 
         return
+
 
     # ─── Reakcja "uyu" ───────────────────────────────#
     if message.content.strip().lower().replace("?", "") == "sztefyn, co będziesz robił w weekend":
