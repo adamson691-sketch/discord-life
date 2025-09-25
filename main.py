@@ -50,6 +50,7 @@ if CHANNEL_ID is None:
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
 intents.message_content = True
+intents.reactions = True  # <── WAŻNE: pozwala wykrywać reakcje emoji
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # przechowuje 20 ostatnich linków wysłanych memów (by nie duplikować)
@@ -284,14 +285,14 @@ async def on_message(message: discord.Message):
         ]
         folder = "images"
 
-        available = [r for r in responses if r not in recent_responses]
-        if not available:
-            available = responses
+        # losowa odpowiedź (unikamy powtórek)
+        available = [r for r in responses if r not in recent_responses] or responses
         response_text = random.choice(available)
         recent_responses.append(response_text)
         if len(recent_responses) > 20:
             recent_responses.pop(0)
 
+        # losowy obrazek z folderu images
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -304,10 +305,12 @@ async def on_message(message: discord.Message):
 
         # wybór kanału docelowego
         target_channel = bot.get_channel(HEART_CHANNEL_ID) if HEART_CHANNEL_ID else message.channel
-        if target_channel:
-            await target_channel.send("❤️ Kocham Cię! ❤️")
+
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
-            await message.channel.send("⚠️ Nie mogę znaleźć kanału docelowego dla ❤️")
+            await target_channel.send(response_text)
+
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────#
