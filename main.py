@@ -19,11 +19,18 @@ import sys
 # pobieramy token i ID kanału bez użycia .env
 TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())  # usuwa spacje i nowe linie
 CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
+
 HEART_CHANNEL_ID_RAW = os.environ.get("HEART_CHANNEL_ID", "").strip()
 try:
     HEART_CHANNEL_ID = int(HEART_CHANNEL_ID_RAW) if HEART_CHANNEL_ID_RAW else None
 except ValueError:
     HEART_CHANNEL_ID = None
+
+ANKIETA_CHANNEL_ID_RAW = os.environ.get("ANKIETA_CHANNEL_ID", "").strip()
+try:
+    ANKIETA_CHANNEL_ID = int(ANKIETA_CHANNEL_ID_RAW) if ANKIETA_CHANNEL_ID_RAW else None
+except ValueError:
+    ANKIETA_CHANNEL_ID = None
 
 # debug – sprawdzenie tokena
 print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
@@ -49,20 +56,24 @@ if CHANNEL_ID is None:
 
 # ─── Ankieta  ───────────────────────────────────────────────────────────────────────
 @bot.command()
-async def ankieta(ctx):
+async def send_ankieta():
+    channel = bot.get_channel(ANKIETA_CHANNEL_ID)
+    if not channel:
+        print("❌ Nie znaleziono kanału do ankiet")
+        return
+
     folder = "Ankieta"
     files = glob.glob(os.path.join(folder, "*.txt"))
     if not files:
-        await ctx.send("⚠️ Brak plików z ankietami w folderze `Ankieta`!")
+        await channel.send("⚠️ Brak plików z ankietami w folderze `Ankieta`!")
         return
 
-    # losowanie pliku
     file = random.choice(files)
     with open(file, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
 
     if len(lines) < 2:
-        await ctx.send("⚠️ Plik ankiety musi mieć pytanie i co najmniej jedną opcję!")
+        await channel.send("⚠️ Plik ankiety musi mieć pytanie i co najmniej jedną opcję!")
         return
 
     pytanie = lines[0]
@@ -78,9 +89,8 @@ async def ankieta(ctx):
         description += f"{emoji} {name}\n"
 
     embed = discord.Embed(title=f"📊 {pytanie}", description=description, color=0x7289da)
-    msg = await ctx.send(embed=embed)
+    msg = await channel.send(embed=embed)
 
-    # dodanie reakcji
     for emoji in emojis:
         await msg.add_reaction(emoji)
         
@@ -435,6 +445,28 @@ async def schedule_memes():
         await asyncio.sleep(wait_seconds)
         await send_memes()
 
+async def schedule_ankiety():
+    tz = pytz.timezone("Europe/Warsaw")
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        now = datetime.now(tz)
+        targets = [(15, 0)]  # np. codziennie 10:00
+        next_time = None
+
+        for hour, minute in targets:
+            t = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+            if t > now:
+                next_time = t
+                break
+
+        if not next_time:
+            next_time = tz.localize(datetime(now.year, now.month, now.day, targets[0][0], targets[0][1])) + timedelta(days=1)
+
+        wait_seconds = max(1, int((next_time - now).total_seconds()))
+        print(f"⏳ Czekam {wait_seconds/3600:.2f}h do ankiety")
+        await asyncio.sleep(wait_seconds)
+        await send_ankieta()
+
 
 # ─── Start ─────────────────────────────────────────────────────────────────────
 @bot.event
@@ -445,6 +477,7 @@ async def main():
     keep_alive()
     async with bot:
         asyncio.create_task(schedule_memes())
+        asyncio.create_task(schedule_ankiety())
         await bot.start(TOKEN)
 
 if __name__ == "__main__":
