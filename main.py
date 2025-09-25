@@ -295,13 +295,10 @@ async def on_message(message: discord.Message):
         return
 
     if message.content.strip().lower() == "ankieta":
-        await send_ankieta()  # zawsze leci na ANKIETA_CHANNEL_ID
+        await send_ankieta()  # zawsze na ANKIETA_CHANNEL_ID
         await message.add_reaction("✅")
         return
 
-    async def ankieta(ctx):
-        await send_ankieta()  # <── nie przekazujemy ctx.channel, tylko zawsze ANKIETA_CHANNEL_ID
-        await ctx.message.add_reaction("✅")  # mały feedback że komenda zadziałała
 
 
     # ❤️ reakcja
