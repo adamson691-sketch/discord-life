@@ -6,6 +6,7 @@ import asyncio
 from bs4 import BeautifulSoup
 import aiohttp
 import random
+import glob
 import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
