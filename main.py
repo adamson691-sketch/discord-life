@@ -377,7 +377,7 @@ async def schedule_memes():
     await bot.wait_until_ready()
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(12, 0), (21, 37)]
+        targets = [(12, 15), (21, 37)]
         next_time = None
 
         for hour, minute in targets:
