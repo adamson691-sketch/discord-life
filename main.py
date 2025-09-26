@@ -423,7 +423,7 @@ async def send_memes():
         print("❌ Nie znaleziono kanału do wysyłki memów")
         return
 
-    memes = await get_random_memes(2)
+    memes = await get_random_memes(3)
     if memes:
         for m in memes:
             comment = get_random_comment()
