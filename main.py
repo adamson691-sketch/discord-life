@@ -19,6 +19,10 @@ import sys
 # pobieramy token i ID kanału bez użycia .env
 TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())  # usuwa spacje i nowe linie
 CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
+try:
+    CHANNEL_ID = int(CHANNEL_ID_RAW) if CHANNEL_ID_RAW else None
+except ValueError:
+    CHANNEL_ID = None
 
 HEART_CHANNEL_ID_RAW = os.environ.get("HEART_CHANNEL_ID", "").strip()
 try:
