@@ -307,8 +307,8 @@ async def on_message(message: discord.Message):
 
     # ❤️ reakcja
     if any(heart in message.content.replace(" ", "") for heart in ["<3", "❤", "❤️", "♥️", "♥"]):
-    print(f"❤️ Triggered in channel {message.channel.id} by {message.author}")
-    print(f"Target channel: {HEART_CHANNEL_ID} | resolved: {bot.get_channel(HEART_CHANNEL_ID)}")
+        print(f"❤️ Triggered in channel {message.channel.id} by {message.author}")
+        print(f"Target channel: {HEART_CHANNEL_ID} | resolved: {bot.get_channel(HEART_CHANNEL_ID)}")
     
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
