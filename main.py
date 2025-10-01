@@ -305,12 +305,14 @@ async def on_message(message: discord.Message):
 
 
 
-    # ❤️ reakcja
-    
-    content = message.content.replace(" ", "")
+    # lista wszystkich serc (emoji + zapis "<3")
+    HEART_EMOJIS = [
+        "<3", "❤", "❤️", "♥️", "♥",
+        "🤍", "💙", "💚", "💛", "💜", "🖤", "🤎", "🧡"
+    ]
 
-    # warunek: reaguje na każde serduszko (dowolny kolor) oraz <3   
-    if "<3" in content or "❤" in content or "♥" in content:
+    # ❤️ reakcja
+    if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
         print(f"❤️ Triggered in channel {message.channel.id} by {message.author}")
         print(f"Target channel: {HEART_CHANNEL_ID} | resolved: {bot.get_channel(HEART_CHANNEL_ID)}")
 
@@ -355,7 +357,7 @@ async def on_message(message: discord.Message):
         if len(recent_responses) > 20:
             recent_responses.pop(0)
 
-        # losowy obrazek z folderu images
+        # losowy obrazek z folderu images (unikamy powtórek)
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -366,15 +368,15 @@ async def on_message(message: discord.Message):
                 if len(seen_images) > 80:
                     seen_images.pop(0)
 
-        # wybór kanału docelowego
-        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
+    # wybór kanału docelowego
+    target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
 
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send(response_text)
+    if img:
+        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+    else:
+        await target_channel.send(response_text)
 
-        return
+    return
 
 
     # ─── Reakcja "uyu" ───────────────────────────────#
