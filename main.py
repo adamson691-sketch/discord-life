@@ -423,6 +423,7 @@ async def on_message(message: discord.Message):
 
     # ─── DOMYŚLNIE przepuszczaj wszystkie inne wiadomości do komend
     await bot.process_commands(message)
+        return
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
