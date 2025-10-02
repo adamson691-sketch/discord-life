@@ -345,13 +345,13 @@ async def on_message(message: discord.Message):
 
         # losowy obrazek
         img = None
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                available_images = [f for f in files if f not in seen_images] or files
-                img = random.choice(available_images)
-                seen_images.append(img)
-                if len(seen_images) > 160:
+    if os.path.exists(folder):
+         files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        if files:
+              available_images = [f for f in files if f not in seen_images] or files
+               img = random.choice(available_images)
+               seen_images.append(img)
+               if len(seen_images) > 180:
                     seen_images.pop(0)
 
         # wybór kanału docelowego
