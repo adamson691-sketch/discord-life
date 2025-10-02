@@ -287,6 +287,8 @@ def get_random_comment():
 async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
+
+    content = message.content.strip().lower()
         
     if message.content.strip().lower() == "memy":
         memes = await get_random_memes(2)
@@ -377,7 +379,7 @@ async def on_message(message: discord.Message):
         await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
     else:
         await target_channel.send(response_text)
-   
+        return
 
 
     # ─── Reakcja "uyu" ───────────────────────────────#
@@ -401,29 +403,29 @@ async def on_message(message: discord.Message):
             )
 
         await bot.process_commands(message)
+        return
         
 
 
-    # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
-    if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
-        folder = "hot"
-        img = None
+    # ─── GORĄCO? ─────────────────────────────────────────
+    if content in ["gorąco?", "goraco?"]:
+        folder = "images_hot"
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
-                img = random.choice(files)
+                await message.channel.send(
+                    "Too hot 🔥",
+                    file=discord.File(os.path.join(folder, random.choice(files)))
+                )
+                await bot.process_commands(message)
+                return
 
-        # wysyłka na HEART_CHANNEL_ID
-        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
-        if img:
-            await target_channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        await bot.process_commands(message)
         return
 
-    # ─── DOMYŚLNIE przepuszczaj wszystkie inne wiadomości do komend
+    # ─── domyślnie przepuszczaj ─────────────────────────
     await bot.process_commands(message)
-        return
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
