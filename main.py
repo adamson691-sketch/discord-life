@@ -358,7 +358,6 @@ async def on_message(message: discord.Message):
         else:
             await target_channel.send(response_text)
 
-        await message.add_reaction("❤️")
         await bot.process_commands(message)
         return
 
@@ -377,7 +376,6 @@ async def on_message(message: discord.Message):
                 return
 
         await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
-        await message.add_reaction("🔥")
         await bot.process_commands(message)
         return
 
