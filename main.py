@@ -406,21 +406,28 @@ async def on_message(message: discord.Message):
         return
         
 
+     # ─── GORĄCO 🔥 ────────────────────────────────────────
+    if content in ["gorąco?", "goraco?", "🔥"]:
+        target_channel = bot.get_channel(HEART_CHANNEL_ID)
+        if target_channel is None:
+            print(f"❌ Nie znaleziono kanału HEART_CHANNEL_ID = {HEART_CHANNEL_ID}")
+            return
 
-    # ─── GORĄCO? ─────────────────────────────────────────
-    if content in ["gorąco?", "goraco?"]:
         folder = "images_hot"
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
-                await message.channel.send(
+                await target_channel.send(
                     "Too hot 🔥",
                     file=discord.File(os.path.join(folder, random.choice(files)))
                 )
+                # dodaj reakcję do wiadomości użytkownika
+                await message.add_reaction("🔥")
                 await bot.process_commands(message)
                 return
 
-        await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        await message.add_reaction("🔥")
         await bot.process_commands(message)
         return
 
