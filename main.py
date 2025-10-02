@@ -377,7 +377,7 @@ async def on_message(message: discord.Message):
         await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
     else:
         await target_channel.send(response_text)
-    return
+   
 
 
     # ─── Reakcja "uyu" ───────────────────────────────#
@@ -401,7 +401,7 @@ async def on_message(message: discord.Message):
             )
 
         await bot.process_commands(message)
-        return
+        
 
 
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
