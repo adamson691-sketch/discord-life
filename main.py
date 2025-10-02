@@ -371,7 +371,6 @@ async def on_message(message: discord.Message):
             if files:
                 img_path = os.path.join(folder, random.choice(files))
                 await target_channel.send("Too hot 🔥", file=discord.File(img_path))
-                await message.add_reaction("🔥")
                 await bot.process_commands(message)
                 return
 
