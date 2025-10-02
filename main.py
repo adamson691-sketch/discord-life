@@ -58,6 +58,18 @@ if CHANNEL_ID is None:
     print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
     sys.exit(1)
 
+# ─── Ładowanie tekstów podrywu ──────────────────────────
+def load_pickup_lines(file_path="Podryw.txt") -> list[str]:
+    if not os.path.exists(file_path):
+        print(f"⚠️ Plik {file_path} nie istnieje! Używam pustej listy.")
+        return []
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f.readlines() if line.strip()]
+    print(f"✅ Załadowano {len(lines)} tekstów podrywu z {file_path}")
+    return lines
+
+pickup_lines = load_pickup_lines()
+
 # ─── Ankieta  ───────────────────────────────────────────────────────────────────────
 async def send_ankieta(target_channel=None):
     if not target_channel:
