@@ -355,7 +355,7 @@ async def on_message(message: discord.Message):
         available = [r for r in responses if r not in recent_responses] or responses
         response_text = random.choice(available)
         recent_responses.append(response_text)
-        if len(recent_responses) > 20:
+        if len(recent_responses) > 40:
             recent_responses.pop(0)
 
         # losowy obrazek z folderu images (unikamy powtórek)
@@ -366,7 +366,7 @@ async def on_message(message: discord.Message):
                 available_images = [f for f in files if f not in seen_images] or files
                 img = random.choice(available_images)
                 seen_images.append(img)
-                if len(seen_images) > 80:
+                if len(seen_images) > 120:
                     seen_images.pop(0)
 
     # wybór kanału docelowego
