@@ -405,7 +405,7 @@ async def on_message(message: discord.Message):
 
 
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
-    if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
+    if content in ["gorąco?", "goraco?"] or "🔥" in content:
         folder = "hot"
         img = None
         if os.path.exists(folder):
@@ -413,12 +413,14 @@ async def on_message(message: discord.Message):
             if files:
                 img = random.choice(files)
 
-        if img:
-            await message.channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, img)))
-        else:
-            await message.channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        # pobieramy kanał po ID
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel  
 
-        await bot.process_commands(message)
+        if img:
+            await target_channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+
         return
 
     # ─── DOMYŚLNIE przepuszczaj wszystkie inne wiadomości do komend
