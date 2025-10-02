@@ -71,7 +71,9 @@ def load_pickup_lines(file_path="Podryw.txt") -> list[str]:
 pickup_lines = load_pickup_lines()
 
 # ─── Ankieta  ───────────────────────────────────────────────────────────────────────
-async def send_ankieta(target_channel=None):
+import asyncio
+
+async def send_ankieta(target_channel=None): 
     if not target_channel:
         target_channel = bot.get_channel(ANKIETA_CHANNEL_ID)
     if not target_channel:
@@ -97,19 +99,66 @@ async def send_ankieta(target_channel=None):
 
     description = ""
     emojis = []
+    opcje_dict = {}  # mapowanie emoji -> nazwa opcji
     for opt in opcje:
         if " " not in opt:
             continue
         emoji, name = opt.split(" ", 1)
         emojis.append(emoji)
+        opcje_dict[emoji] = name
         description += f"{emoji} {name}\n"
 
     embed = discord.Embed(title=f"📊 {pytanie}", description=description, color=0x7289da)
+    embed.set_footer(text="⏳ Głosowanie trwa 24h")
     msg = await target_channel.send(embed=embed)
 
     for emoji in emojis:
         await msg.add_reaction(emoji)
-        
+
+    # Czekamy 24h (86400 sekund)
+    await asyncio.sleep(86400)
+
+    # Pobierz wiadomość ponownie, żeby mieć aktualne reakcje
+    msg = await target_channel.fetch_message(msg.id)
+
+    # Zlicz głosy
+    wyniki = []
+    max_votes = -1
+    zwyciezca = None
+
+    for reaction in msg.reactions:
+        if str(reaction.emoji) in emojis:
+            count = reaction.count - 1  # -1 bo bot też reaguje
+            wyniki.append(f"{reaction.emoji} — {count} głosów")
+
+            if count > max_votes:
+                max_votes = count
+                zwyciezca = str(reaction.emoji)
+
+    if not wyniki:
+        await target_channel.send("⚠️ Nikt nie zagłosował 😅")
+        return
+
+    # Tekst wyników
+    result_text = "\n".join(wyniki)
+
+    # Embed z wynikami
+    result_embed = discord.Embed(
+        title=f"📊 Wyniki ankiety: {pytanie}",
+        description=result_text,
+        color=0x57F287
+    )
+
+    # Dodaj zwycięzcę jeśli jest
+    if zwyciezca:
+        result_embed.add_field(
+            name="🏆 Zwycięzca",
+            value=f"{zwyciezca} {opcje_dict[zwyciezca]} — **{max_votes} głosów**",
+            inline=False
+        )
+
+    await target_channel.send(embed=result_embed)
+
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
 intents.message_content = True
