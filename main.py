@@ -358,6 +358,7 @@ async def on_message(message: discord.Message):
         if len(recent_responses) > 40:
             recent_responses.pop(0)
 
+
         # losowy obrazek z folderu images (unikamy powtórek)
         img = None
         if os.path.exists(folder):
@@ -376,7 +377,6 @@ async def on_message(message: discord.Message):
         await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
     else:
         await target_channel.send(response_text)
-
     return
 
 
@@ -405,7 +405,7 @@ async def on_message(message: discord.Message):
 
 
     # ─── Reakcja 🔥 (gorąco? lub emoji) ───────────────
-    if content in ["gorąco?", "goraco?"] or "🔥" in content:
+    if message.content.strip().lower() in ["gorąco?", "goraco?"] or "🔥" in message.content:
         folder = "hot"
         img = None
         if os.path.exists(folder):
@@ -413,19 +413,16 @@ async def on_message(message: discord.Message):
             if files:
                 img = random.choice(files)
 
-        # pobieramy kanał po ID
-        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel  
-
+        # wysyłka na HEART_CHANNEL_ID
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         if img:
             await target_channel.send("Too hot 🔥", file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
-
         return
 
     # ─── DOMYŚLNIE przepuszczaj wszystkie inne wiadomości do komend
     await bot.process_commands(message)
-
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
