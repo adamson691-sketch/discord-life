@@ -369,7 +369,7 @@ async def on_message(message: discord.Message):
                 available_images = [f for f in files if f not in seen_images] or files
                 img = random.choice(available_images)
                 seen_images.append(img)
-                if len(seen_images) > 120:
+                if len(seen_images) > 160:
                     seen_images.pop(0)
 
     # wybór kanału docelowego
