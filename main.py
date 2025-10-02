@@ -333,12 +333,15 @@ async def on_message(message: discord.Message):
     
         folder = "images"
 
-        # losowa odpowiedź
-        available = [r for r in responses if r not in recent_responses] or responses
+    # losowa odpowiedź z Podryw.txt
+    if not pickup_lines:
+        response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
+    else:
+        available = [r for r in pickup_lines if r not in recent_responses] or pickup_lines
         response_text = random.choice(available)
         recent_responses.append(response_text)
         if len(recent_responses) > 40:
-            recent_responses.pop(0)
+        recent_responses.pop(0)
 
         # losowy obrazek
         img = None
