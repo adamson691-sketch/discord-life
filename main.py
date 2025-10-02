@@ -309,16 +309,15 @@ async def on_message(message: discord.Message):
 
     # lista wszystkich serc (emoji + zapis "<3")
     HEART_EMOJIS = [
-    "<3", "❤", "❤️", "♥️", "♥",
-    "🤍", "💙", "🩵", "💚", "💛", "💜",
-    "🖤", "🤎", "🧡", "💗", "🩶", "🩷",
+        "<3", "❤", "❤️", "♥️", "♥",
+        "🤍", "💙", "🩵", "💚", "💛", "💜",
+        "🖤", "🤎", "🧡", "💗", "🩶", "🩷",
     ]
 
     # ❤️ reakcja
     if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
         print(f"❤️ Triggered in channel {message.channel.id} by {message.author}")
         print(f"Target channel: {HEART_CHANNEL_ID} | resolved: {bot.get_channel(HEART_CHANNEL_ID)}")
-
     
         responses = [
             "Wiem, że jeszcze nie Walentynki, ale już teraz skradłaś/eś moje serce 💕",
@@ -353,15 +352,14 @@ async def on_message(message: discord.Message):
         ]
         folder = "images"
 
-        # losowa odpowiedź (unikamy powtórek)
+        # losowa odpowiedź
         available = [r for r in responses if r not in recent_responses] or responses
         response_text = random.choice(available)
         recent_responses.append(response_text)
         if len(recent_responses) > 40:
             recent_responses.pop(0)
 
-
-        # losowy obrazek z folderu images (unikamy powtórek)
+        # losowy obrazek
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -372,13 +370,38 @@ async def on_message(message: discord.Message):
                 if len(seen_images) > 160:
                     seen_images.pop(0)
 
-    # wybór kanału docelowego
-    target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
+        # wybór kanału docelowego
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
 
-    if img:
-        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-    else:
-        await target_channel.send(response_text)
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send(response_text)
+
+        await message.add_reaction("❤️")
+        await bot.process_commands(message)
+        return
+
+    # ─── GORĄCO 🔥 ────────────────────────────────────────
+    if content in ["gorąco?", "goraco?", "🔥"]:
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
+        print(f"🔥 Triggered in channel {message.channel.id}, sending to {target_channel}")
+
+        folder = "images_hot"
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            if files:
+                await target_channel.send(
+                    "Too hot 🔥",
+                    file=discord.File(os.path.join(folder, random.choice(files)))
+                )
+                await message.add_reaction("🔥")
+                await bot.process_commands(message)
+                return
+
+        await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
+        await message.add_reaction("🔥")
+        await bot.process_commands(message)
         return
 
 
@@ -405,31 +428,6 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
         
-
-     # ─── GORĄCO 🔥 ────────────────────────────────────────
-    if content in ["gorąco?", "goraco?", "🔥"]:
-        target_channel = bot.get_channel(HEART_CHANNEL_ID)
-        if target_channel is None:
-            print(f"❌ Nie znaleziono kanału HEART_CHANNEL_ID = {HEART_CHANNEL_ID}")
-            return
-
-        folder = "images_hot"
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                await target_channel.send(
-                    "Too hot 🔥",
-                    file=discord.File(os.path.join(folder, random.choice(files)))
-                )
-                # dodaj reakcję do wiadomości użytkownika
-                await message.add_reaction("🔥")
-                await bot.process_commands(message)
-                return
-
-        await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
-        await message.add_reaction("🔥")
-        await bot.process_commands(message)
-        return
 
     # ─── domyślnie przepuszczaj ─────────────────────────
     await bot.process_commands(message)
