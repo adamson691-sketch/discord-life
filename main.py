@@ -342,7 +342,7 @@ meme_comments = [
 ]
 
 def get_random_comment():
-    return random.choice(meme_comments) if random.random() < 0.7 else ""  
+    return random.choice(meme_comments) if random.random() < 0.4 else ""  
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
