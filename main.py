@@ -32,9 +32,9 @@ except ValueError:
 
 ANKIETA_CHANNEL_ID_RAW = os.environ.get("ANKIETA_CHANNEL_ID", "").strip()
 try:
-    ANKIETA_CHANNEL_ID = int(ANKIETA_CHANNEL_ID_RAW) if ANKIETA_CHANNEL_ID_RAW else None
+    TA_CHANNEL_ID = int(TA_CHANNEL_ID_RAW) if TA_CHANNEL_ID_RAW else None
 except ValueError:
-    ANKIETA_CHANNEL_ID = None
+    TA_CHANNEL_ID = None
 
 # debug – sprawdzenie tokena
 print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
@@ -70,8 +70,9 @@ def load_pickup_lines(file_path="Podryw.txt") -> list[str]:
 
 pickup_lines = load_pickup_lines()
 
-# ─── Ankieta  ───────────────────────────────────────────────────────────────────────
+# ─── ta  ───────────────────────────────────────────────────────────────────────
 import asyncio
+import os
 
 async def send_ankieta(target_channel=None): 
     if not target_channel:
@@ -87,6 +88,8 @@ async def send_ankieta(target_channel=None):
         return
 
     file = random.choice(files)
+    file_name = os.path.basename(file).replace(".txt", "")  # nazwa pliku bez rozszerzenia
+
     with open(file, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
 
@@ -109,7 +112,7 @@ async def send_ankieta(target_channel=None):
         description += f"{emoji} {name}\n"
 
     embed = discord.Embed(title=f"📊 {pytanie}", description=description, color=0x7289da)
-    embed.set_footer(text="⏳ Głosowanie trwa 24h")
+    embed.set_footer(text=f"⏳ Głosowanie trwa 24h | Plik: {file_name}")
     msg = await target_channel.send(embed=embed)
 
     for emoji in emojis:
@@ -148,6 +151,7 @@ async def send_ankieta(target_channel=None):
         description=result_text,
         color=0x57F287
     )
+    result_embed.set_footer(text=f"📄 Źródło: {file_name}.txt")
 
     # Dodaj zwycięzcę jeśli jest
     if zwyciezca:
