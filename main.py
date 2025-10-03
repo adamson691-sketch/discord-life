@@ -391,7 +391,7 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines if r not in recent_responses] or pickup_lines
             response_text = random.choice(available)
             recent_responses.append(response_text)
-            if len(recent_responses) > 40:
+            if len(recent_responses) > 70:
                 recent_responses.pop(0)
 
         # Losowy obrazek z folderu images
@@ -402,7 +402,7 @@ async def on_message(message: discord.Message):
                 available_images = [f for f in files if f not in seen_images] or files
                 img = random.choice(available_images)
                 seen_images.append(img)
-                if len(seen_images) > 180:
+                if len(seen_images) > 400:
                     seen_images.pop(0)
 
         # Wysyłka wiadomości
