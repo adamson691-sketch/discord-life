@@ -32,9 +32,9 @@ except ValueError:
 
 ANKIETA_CHANNEL_ID_RAW = os.environ.get("ANKIETA_CHANNEL_ID", "").strip()
 try:
-    TA_CHANNEL_ID = int(TA_CHANNEL_ID_RAW) if TA_CHANNEL_ID_RAW else None
+    ANKIETA_CHANNEL_ID = int(ANKIETA_CHANNEL_ID_RAW) if ANKIETA_CHANNEL_ID_RAW else None
 except ValueError:
-    TA_CHANNEL_ID = None
+    ANKIETA_CHANNEL_ID = None
 
 # debug – sprawdzenie tokena
 print(f"DEBUG TOKEN: '{TOKEN}' | length: {len(TOKEN)}")
