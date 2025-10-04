@@ -70,11 +70,13 @@ def load_pickup_lines(file_path="Podryw.txt") -> list[str]:
 
 pickup_lines = load_pickup_lines()
 
-# ─── ankieta  ───────────────────────────────────────────────────────────────────────
 import asyncio
 import os
+import random
+import glob
+import discord
 
-async def send_ankieta(target_channel=None): 
+async def send_ankieta(target_channel=None, only_two=False): 
     if not target_channel:
         target_channel = bot.get_channel(ANKIETA_CHANNEL_ID)
     if not target_channel:
@@ -88,21 +90,24 @@ async def send_ankieta(target_channel=None):
         return
 
     file = random.choice(files)
-    file_name = os.path.basename(file).replace(".txt", "")  # nazwa pliku bez rozszerzenia
+    file_name = os.path.basename(file).replace(".txt", "")
 
     with open(file, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
 
-    if len(lines) < 2:
-        await target_channel.send("⚠️ Plik ankiety musi mieć pytanie i co najmniej jedną opcję!")
+    if len(lines) < 3:
+        await target_channel.send(f"⚠️ Plik `{file_name}` musi mieć pytanie i co najmniej dwie opcje!")
         return
 
     pytanie = lines[0]
     opcje = lines[1:]
 
+    if only_two and len(opcje) > 2:
+        opcje = random.sample(opcje, 2)
+
     description = ""
     emojis = []
-    opcje_dict = {}  # mapowanie emoji -> nazwa opcji
+    opcje_dict = {}
     for opt in opcje:
         if " " not in opt:
             continue
@@ -118,34 +123,29 @@ async def send_ankieta(target_channel=None):
     for emoji in emojis:
         await msg.add_reaction(emoji)
 
-    # Czekamy 24h (86400 sekund)
-    await asyncio.sleep(10)
+    print(f"✅ Ankieta '{file_name}' rozpoczęta! Czekam 24h na głosy...")
+    await asyncio.sleep(10)  # zmień na 86400 w wersji produkcyjnej
 
-    # Pobierz wiadomość ponownie, żeby mieć aktualne reakcje
     msg = await target_channel.fetch_message(msg.id)
 
-    # Zlicz głosy
     wyniki = []
     max_votes = -1
     zwyciezca = None
 
     for reaction in msg.reactions:
         if str(reaction.emoji) in emojis:
-            count = reaction.count - 1  # -1 bo bot też reaguje
+            count = reaction.count - 1
             wyniki.append(f"{reaction.emoji} — {count} głosów")
-
             if count > max_votes:
                 max_votes = count
                 zwyciezca = str(reaction.emoji)
 
     if not wyniki:
-        await target_channel.send("⚠️ Nikt nie zagłosował 😅")
+        await target_channel.send(f"⚠️ Nikt nie zagłosował w ankiecie `{file_name}` 😅")
         return
 
-    # Tekst wyników
     result_text = "\n".join(wyniki)
 
-    # Embed z wynikami
     result_embed = discord.Embed(
         title=f"📊 Wyniki ankiety: {pytanie}",
         description=result_text,
@@ -153,7 +153,6 @@ async def send_ankieta(target_channel=None):
     )
     result_embed.set_footer(text=f"📄 Źródło: {file_name}.txt")
 
-    # Dodaj zwycięzcę jeśli jest
     if zwyciezca:
         result_embed.add_field(
             name="🏆 Zwycięzca",
@@ -162,6 +161,8 @@ async def send_ankieta(target_channel=None):
         )
 
     await target_channel.send(embed=result_embed)
+    print(f"🏁 Ankieta '{file_name}' zakończona! Zwycięzca: {opcje_dict.get(zwyciezca, '?')} ({max_votes} głosów)")
+
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
