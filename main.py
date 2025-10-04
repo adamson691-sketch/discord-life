@@ -124,7 +124,7 @@ async def send_ankieta(target_channel=None, only_two=False):
         await msg.add_reaction(emoji)
 
     print(f"✅ Ankieta '{file_name}' rozpoczęta! Czekam 24h na głosy...")
-    await asyncio.sleep(10)  # zmień na 86400 w wersji produkcyjnej
+    await asyncio.sleep(86400)  # zmień na 86400 w wersji produkcyjnej
 
     msg = await target_channel.fetch_message(msg.id)
 
