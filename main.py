@@ -70,7 +70,7 @@ def load_pickup_lines(file_path="Podryw.txt") -> list[str]:
 
 pickup_lines = load_pickup_lines()
 
-# ─── ta  ───────────────────────────────────────────────────────────────────────
+# ─── ankieta  ───────────────────────────────────────────────────────────────────────
 import asyncio
 import os
 
@@ -119,7 +119,7 @@ async def send_ankieta(target_channel=None):
         await msg.add_reaction(emoji)
 
     # Czekamy 24h (86400 sekund)
-    await asyncio.sleep(86400)
+    await asyncio.sleep(10)
 
     # Pobierz wiadomość ponownie, żeby mieć aktualne reakcje
     msg = await target_channel.fetch_message(msg.id)
