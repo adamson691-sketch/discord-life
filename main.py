@@ -117,14 +117,14 @@ async def send_ankieta(target_channel=None, only_two=False):
         description += f"{emoji} {name}\n"
 
     embed = discord.Embed(title=f"📊 {pytanie}", description=description, color=0x7289da)
-    embed.set_footer(text=f"⏳ Głosowanie trwa 24h | Plik: {file_name}")
+    embed.set_footer(text=f"⏳ Głosowanie trwa 23h | Plik: {file_name}")
     msg = await target_channel.send(embed=embed)
 
     for emoji in emojis:
         await msg.add_reaction(emoji)
 
     print(f"✅ Ankieta '{file_name}' rozpoczęta! Czekam 24h na głosy...")
-    await asyncio.sleep(86400)  # zmień na 86400 w wersji produkcyjnej
+    await asyncio.sleep(82800)  # zmień na 86400 w wersji produkcyjnej
 
     msg = await target_channel.fetch_message(msg.id)
 
@@ -347,7 +347,23 @@ meme_comments = [
 ]
 
 def get_random_comment():
-    return random.choice(meme_comments) if random.random() < 0.4 else ""  
+    return random.choice(meme_comments) if random.random() < 0.4 else ""
+
+def load_lines(file_path: str) -> list[str]:
+    if not os.path.exists(file_path):
+        print(f"⚠️ Plik {file_path} nie istnieje! Używam pustej listy.")
+        return []
+    with open(file_path, "r", encoding="utf-8") as f:
+        return [line.strip() for line in f.readlines() if line.strip()]
+
+# Oddzielne listy tekstów
+pickup_lines_love = load_lines("Podryw.txt")
+pickup_lines_hot = load_lines("kuszace.txt")
+
+# Ostatnie odpowiedzi (dla unikania powtórzeń)
+recent_love_responses: list[str] = []
+recent_hot_responses: list[str] = []
+
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
@@ -363,14 +379,12 @@ async def on_message(message: discord.Message):
                 await message.channel.send(m)
         else:
             await message.channel.send("⚠️ Nie udało się znaleźć memów!")
-        await bot.process_commands(message)
         return
 
     # ─── Komenda "ankieta" ───────────────────────────
     if content == "ankieta":
-        await send_ankieta()  # zawsze na ANKIETA_CHANNEL_ID
+        await send_ankieta()
         await message.add_reaction("✅")
-        await bot.process_commands(message)
         return
 
     # ─── Reakcja ❤️ ─────────────────────────────────
@@ -382,20 +396,17 @@ async def on_message(message: discord.Message):
 
     if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
-
         folder = "images"
 
-        # Losowa odpowiedź z Podryw.txt
-        if not pickup_lines:
+        if not pickup_lines_love:
             response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
         else:
-            available = [r for r in pickup_lines if r not in recent_responses] or pickup_lines
+            available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
             response_text = random.choice(available)
-            recent_responses.append(response_text)
-            if len(recent_responses) > 70:
-                recent_responses.pop(0)
+            recent_love_responses.append(response_text)
+            if len(recent_love_responses) > 70:
+                recent_love_responses.pop(0)
 
-        # Losowy obrazek z folderu images
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -406,13 +417,10 @@ async def on_message(message: discord.Message):
                 if len(seen_images) > 400:
                     seen_images.pop(0)
 
-        # Wysyłka wiadomości
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
-
-        await bot.process_commands(message)
         return
 
     # ─── Reakcja "gorąco 🔥" ─────────────────────────
@@ -420,16 +428,23 @@ async def on_message(message: discord.Message):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "hot"
 
+        if not pickup_lines_hot:
+            response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
+        else:
+            available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
+            response_text = random.choice(available)
+            recent_hot_responses.append(response_text)
+            if len(recent_hot_responses) > 70:
+                recent_hot_responses.pop(0)
+
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img_path = os.path.join(folder, random.choice(files))
-                await target_channel.send("Too hot 🔥", file=discord.File(img_path))
-                await bot.process_commands(message)
+                await target_channel.send(f"{response_text}\nToo hot 🔥", file=discord.File(img_path))
                 return
 
-        await target_channel.send("Too hot 🔥 (ale brak obrazków w folderze!)")
-        await bot.process_commands(message)
+        await target_channel.send(f"{response_text}\nToo hot 🔥 (ale brak obrazków w folderze!)")
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────
@@ -451,11 +466,9 @@ async def on_message(message: discord.Message):
             await message.channel.send(
                 "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3  (ale brak obrazków w folderze!)"
             )
-
-        await bot.process_commands(message)
         return
 
-    # ─── Domyślnie przepuszczaj wszystkie inne wiadomości ─────
+    # ─── Domyślnie przepuszczaj inne wiadomości ─────
     await bot.process_commands(message)
 
 
