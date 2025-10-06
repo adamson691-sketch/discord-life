@@ -172,8 +172,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # przechowuje 20 ostatnich linków wysłanych memów (by nie duplikować)
 seen_memes: list[str] = []
-# przechowuje 20 ostatnich wysłanych obrazków z folderu imagess
-seen_imagess: list[str] = []
+# przechowuje 20 ostatnich wysłanych obrazków z folderu images
+seen_images: list[str] = []
 # przechowuje ostatnie odpowiedzi na ❤️ (by nie powtarzać za często)
 recent_responses: list[str] = []
 
@@ -411,11 +411,11 @@ async def on_message(message: discord.Message):
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
-                available_imagess = [f for f in files if f not in seen_imagess] or files
-                img = random.choice(available_imagess)
-                seen_imagess.append(img)
-                if len(seen_imagess) > 400:
-                    seen_imagess.pop(0)
+                available_images = [f for f in files if f not in seen_images] or files
+                img = random.choice(available_images)
+                seen_images.append(img)
+                if len(seen_images) > 400:
+                    seen_images.pop(0)
 
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
