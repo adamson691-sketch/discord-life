@@ -441,10 +441,10 @@ async def on_message(message: discord.Message):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img_path = os.path.join(folder, random.choice(files))
-                await target_channel.send(f"{response_text}\nToo hot 🔥", file=discord.File(img_path))
+                await target_channel.send(response_text, file=discord.File(img_path))
                 return
 
-        await target_channel.send(f"{response_text}\nToo hot 🔥 (ale brak obrazków w folderze!)")
+        await target_channel.send(f"{response_text} (ale brak obrazków w folderze!)")
         return
 
     # ─── Reakcja "uyu" ───────────────────────────────
