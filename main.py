@@ -172,8 +172,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # przechowuje 20 ostatnich linków wysłanych memów (by nie duplikować)
 seen_memes: list[str] = []
-# przechowuje 20 ostatnich wysłanych obrazków z folderu images
-seen_images: list[str] = []
+# przechowuje 20 ostatnich wysłanych obrazków z folderu imagess
+seen_imagess: list[str] = []
 # przechowuje ostatnie odpowiedzi na ❤️ (by nie powtarzać za często)
 recent_responses: list[str] = []
 
@@ -396,7 +396,7 @@ async def on_message(message: discord.Message):
 
     if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
-        folder = "images"
+        folder = "imagess"
 
         if not pickup_lines_love:
             response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
@@ -411,11 +411,11 @@ async def on_message(message: discord.Message):
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
-                available_images = [f for f in files if f not in seen_images] or files
-                img = random.choice(available_images)
-                seen_images.append(img)
-                if len(seen_images) > 400:
-                    seen_images.pop(0)
+                available_imagess = [f for f in files if f not in seen_imagess] or files
+                img = random.choice(available_imagess)
+                seen_imagess.append(img)
+                if len(seen_imagess) > 400:
+                    seen_imagess.pop(0)
 
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
