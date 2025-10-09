@@ -190,22 +190,16 @@ async def send_ankieta(target_channel=None, only_two=False):
 
     await target_channel.send(embed=result_embed)
     print(f"🏁 Ankieta '{file_name}' zakończona! Zwycięzca: {opcje_dict.get(zwyciezca, '?')} ({max_votes} głosów)")
-#───────────────────────────────────────────── ankieta ──────────────────────────────────────────────
-async def on_message(message):
-    if message.author.bot:
-        return
 
-    if "inkluzif" in message.content.lower():
-        await send_ankieta()
-
-async def send_ankieta():
+# ──────────────────────────────── ankieta DRINK ───────────────────────────────
+async def send_drink_ankieta():
+    """Wysyła ankietę z pliku Ankieta/drink.txt"""
     target_channel = bot.get_channel(ANKIETA_CHANNEL_ID)
     if not target_channel:
         print("❌ Nie znaleziono kanału do ankiet")
         return
 
-    folder = "Ankieta"
-    file = os.path.join(folder, "drink.txt")
+    file = os.path.join("Ankieta", "drink.txt")
     if not os.path.exists(file):
         await target_channel.send("⚠️ Brak pliku `drink.txt` w folderze `Ankieta`!")
         return
@@ -239,17 +233,16 @@ async def send_ankieta():
         await msg.add_reaction(emoji)
 
     print(f"✅ Ankieta 'drink.txt' rozpoczęta! Czekam 23h na głosy...")
-    await asyncio.sleep(82800)  # 23h = 82800 sekund
+    await asyncio.sleep(82800)  # 23h
 
     msg = await target_channel.fetch_message(msg.id)
-
     wyniki = []
     max_votes = -1
     zwyciezca = None
 
     for reaction in msg.reactions:
         if str(reaction.emoji) in emojis:
-            count = reaction.count - 1  # odejmujemy głos bota
+            count = reaction.count - 1  # odlicz głos bota
             wyniki.append(f"{reaction.emoji} — {count} głosów")
             if count > max_votes:
                 max_votes = count
@@ -260,7 +253,6 @@ async def send_ankieta():
         return
 
     result_text = "\n".join(wyniki)
-
     result_embed = discord.Embed(
         title=f"📊 Wyniki ankiety: {pytanie}",
         description=result_text,
@@ -277,6 +269,20 @@ async def send_ankieta():
 
     await target_channel.send(embed=result_embed)
     print(f"🏁 Ankieta 'drink.txt' zakończona! Zwycięzca: {opcje_dict.get(zwyciezca, '?')} ({max_votes} głosów)")
+
+# ──────────────────────────────── on_message ───────────────────────────────
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    content = message.content.strip().lower()
+
+    # ─── KOMENDA INKLUZIF ─────────────────────────────
+    if "inkluzif" in content:
+        await send_drink_ankieta()
+        await message.add_reaction("🍸")
+        return
 
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
