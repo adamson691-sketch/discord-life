@@ -270,20 +270,6 @@ async def send_drink_ankieta():
     await target_channel.send(embed=result_embed)
     print(f"🏁 Ankieta 'drink.txt' zakończona! Zwycięzca: {opcje_dict.get(zwyciezca, '?')} ({max_votes} głosów)")
 
-# ──────────────────────────────── on_message ───────────────────────────────
-@bot.event
-async def on_message(message: discord.Message):
-    if message.author == bot.user:
-        return
-
-    content = message.content.strip().lower()
-
-    # ─── KOMENDA INKLUZIF ─────────────────────────────
-    if "inkluzif" in content:
-        await send_drink_ankieta()
-        await message.add_reaction("🍸")
-        return
-
 
 # ─── Bot ───────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
@@ -507,6 +493,12 @@ async def on_message(message: discord.Message):
         await send_ankieta()
         await message.add_reaction("✅")
         return
+
+    # ─── drink ───────────────────────────
+    if "inkluzif" in content:
+    await send_drink_ankieta()
+    await message.add_reaction("🍸")
+    return
 
     # ─── Reakcja ❤️ ─────────────────────────────────
     HEART_EMOJIS = [
