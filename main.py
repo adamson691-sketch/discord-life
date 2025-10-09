@@ -474,8 +474,8 @@ async def on_message(message: discord.Message):
                 img_path = os.path.join(folder, random.choice(files))
                 seen_images.append(os.path.basename(img_path))
                 if len(seen_images) > 400:
-                seen_images.pop(0)
-                save_memory()
+                    seen_images.pop(0)
+                    save_memory()
                 
                 await target_channel.send(response_text, file=discord.File(img_path))
                 return
