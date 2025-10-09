@@ -26,11 +26,10 @@ def load_memory():
 
 def save_memory():
     data = {
-        memory = load_memory()
-        seen_memes: list[str] = memory.get("seen_memes", [])
-        seen_images: list[str] = memory.get("seen_images", [])
-        recent_love_responses: list[str] = memory.get("recent_love_responses", [])
-        recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
+        "seen_memes": seen_memes,
+        "seen_images": seen_images,
+        "recent_love_responses": recent_love_responses,
+        "recent_hot_responses": recent_hot_responses,
     }
     with open(MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -65,6 +64,12 @@ print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
 # pobierz ID kanału na serca (może być inny niż główny)
 
+# ─── Pamięć ────────────────────────────────────────
+memory = load_memory()
+seen_memes: list[str] = memory.get("seen_memes", [])
+seen_images: list[str] = memory.get("seen_images", [])
+recent_love_responses: list[str] = memory.get("recent_love_responses", [])
+recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
 
 # walidacja tokena
 if not TOKEN:
