@@ -496,9 +496,9 @@ async def on_message(message: discord.Message):
 
     # ─── drink ───────────────────────────
     if "inkluzif" in content:
-    await send_drink_ankieta()
-    await message.add_reaction("🍸")
-    return
+        await send_drink_ankieta()
+        await message.add_reaction("🍸")
+        return
 
     # ─── Reakcja ❤️ ─────────────────────────────────
     HEART_EMOJIS = [
