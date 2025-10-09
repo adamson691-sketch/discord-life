@@ -12,6 +12,30 @@ from discord.ext import commands
 from datetime import datetime, timedelta
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 
+import json
+
+MEMORY_FILE = "memory.json"
+
+def load_memory():
+    if os.path.exists(MEMORY_FILE):
+        try:
+            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print("⚠️ Błąd w memory.json – resetuję dane.")
+    return {"seen_memes": [], "seen_images": [], "recent_love_responses": [], "recent_hot_responses": []}
+
+def save_memory():
+    data = {
+        memory = load_memory()
+        seen_memes: list[str] = memory.get("seen_memes", [])
+        seen_images: list[str] = memory.get("seen_images", [])
+        recent_love_responses: list[str] = memory.get("recent_love_responses", [])
+        recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
+    }
+    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
 import os
 import sys
@@ -404,8 +428,9 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
             response_text = random.choice(available)
             recent_love_responses.append(response_text)
-            if len(recent_love_responses) > 70:
+            if len(recent_love_responses) > 120:
                 recent_love_responses.pop(0)
+                save_memory()
 
         img = None
         if os.path.exists(folder):
@@ -416,6 +441,7 @@ async def on_message(message: discord.Message):
                 seen_images.append(img)
                 if len(seen_images) > 400:
                     seen_images.pop(0)
+                    save_memory()
 
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
@@ -434,13 +460,19 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
             response_text = random.choice(available)
             recent_hot_responses.append(response_text)
-            if len(recent_hot_responses) > 70:
+            if len(recent_hot_responses) > 200:
                 recent_hot_responses.pop(0)
+                save_memory()
 
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img_path = os.path.join(folder, random.choice(files))
+                seen_images.append(os.path.basename(img_path))
+                if len(seen_images) > 400:
+                seen_images.pop(0)
+                save_memory()
+                
                 await target_channel.send(response_text, file=discord.File(img_path))
                 return
 
