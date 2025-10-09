@@ -11,7 +11,6 @@ import pytz
 from discord.ext import commands
 from datetime import datetime, timedelta
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
-
 import json
 
 MEMORY_FILE = "memory.json"
