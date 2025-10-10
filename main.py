@@ -528,7 +528,7 @@ async def on_message(message: discord.Message):
                 available_images = [f for f in files if f not in seen_images] or files
                 img = random.choice(available_images)
                 seen_images.append(img)
-                if len(seen_images) > 400:
+                if len(seen_images) > 500:
                     seen_images.pop(0)
                     save_memory()
 
@@ -549,7 +549,7 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
             response_text = random.choice(available)
             recent_hot_responses.append(response_text)
-            if len(recent_hot_responses) > 200:
+            if len(recent_hot_responses) > 500:
                 recent_hot_responses.pop(0)
                 save_memory()
 
@@ -558,7 +558,7 @@ async def on_message(message: discord.Message):
             if files:
                 img_path = os.path.join(folder, random.choice(files))
                 seen_images.append(os.path.basename(img_path))
-                if len(seen_images) > 400:
+                if len(seen_images) > 500:
                     seen_images.pop(0)
                     save_memory()
                 
