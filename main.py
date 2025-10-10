@@ -504,7 +504,7 @@ async def on_message(message: discord.Message):
     HEART_EMOJIS = [
         "<3", "❤", "❤️", "♥️", "♥",
         "🤍", "💙", "🩵", "💚", "💛", "💜",
-        "🖤", "🤎", "🧡", "💗", "🩶", "🩷",
+        "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖",
     ]
 
     if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
