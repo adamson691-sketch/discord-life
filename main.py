@@ -680,6 +680,39 @@ async def schedule_ankiety():
         await ctx.send(msg)
         return
 
+    @bot.command(name="resetpamięć")
+    async def reset_pamięć(ctx):
+        """Czyści zapamiętane memy, obrazy i teksty po potwierdzeniu."""
+        confirm_msg = await ctx.send(
+            "⚠️ **Uwaga!** Ta komenda usunie wszystkie zapamiętane memy, obrazy i odpowiedzi.\n"
+            "Kliknij ✅ aby potwierdzić lub ❌ aby anulować."
+        )
+    
+        # dodaj reakcje do wiadomości
+        await confirm_msg.add_reaction("✅")
+        await confirm_msg.add_reaction("❌")
+    
+        def check(reaction, user):
+            return (
+            user == ctx.author
+                and str(reaction.emoji) in ["✅", "❌"]
+                and reaction.message.id == confirm_msg.id
+            )
+
+        try:
+            reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
+            if str(reaction.emoji) == "✅":
+                memory["seen_memes"] = []
+                memory["seen_images"] = []
+                memory["recent_pickup_lines"] = []
+                memory["recent_hot_responses"] = []
+                save_memory()
+                await ctx.send("🧹 Pamięć została **zresetowana**.")
+            else:
+                await ctx.send("❌ Reset pamięci **anulowany**.")
+        except asyncio.TimeoutError:
+                await ctx.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
+    
 
 # ─── Start ─────────────────────────────────────────────────────────────────────
 @bot.event
