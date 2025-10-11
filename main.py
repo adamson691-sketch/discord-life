@@ -66,8 +66,8 @@ print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
 # ─── Pamięć ────────────────────────────────────────
 memory = load_memory()
-seen_memes: list[str] = memory.get("seen_memes", [])
-seen_images: list[str] = memory.get("seen_images", [])
+memory["seen_memes"] = list(dict.fromkeys(memory.get("seen_memes", [])))
+memory["seen_images"] = list(dict.fromkeys(memory.get("seen_images", [])))
 recent_love_responses: list[str] = memory.get("recent_love_responses", [])
 recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
 
@@ -86,7 +86,7 @@ if CHANNEL_ID is None:
     print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
     sys.exit(1)
 
-# ─── Ładowanie tekstów podrywu ──────────────────────────
+# ─── Ładowanie tekstów podrywu ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 def load_pickup_lines(file_path="Podryw.txt") -> list[str]:
     if not os.path.exists(file_path):
         print(f"⚠️ Plik {file_path} nie istnieje! Używam pustej listy.")
@@ -191,7 +191,7 @@ async def send_ankieta(target_channel=None, only_two=False):
     await target_channel.send(embed=result_embed)
     print(f"🏁 Ankieta '{file_name}' zakończona! Zwycięzca: {opcje_dict.get(zwyciezca, '?')} ({max_votes} głosów)")
 
-# ──────────────────────────────── ankieta DRINK ───────────────────────────────
+# ──────────────────────────────── ankieta DRINK ─────────────────────────────────────────────────────────────────────────────────────
 async def send_drink_ankieta():
     """Wysyła ankietę z pliku Ankieta/drink.txt"""
     target_channel = bot.get_channel(ANKIETA_CHANNEL_ID)
@@ -271,7 +271,7 @@ async def send_drink_ankieta():
     print(f"🏁 Ankieta 'drink.txt' zakończona! Zwycięzca: {opcje_dict.get(zwyciezca, '?')} ({max_votes} głosów)")
 
 
-# ─── Bot ───────────────────────────────────────────────────────────────────────
+# ─── Bot ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True  # <── WAŻNE: pozwala wykrywać reakcje emoji
@@ -285,7 +285,7 @@ seen_images: list[str] = []
 recent_responses: list[str] = []
 
 
-# ─── Pobieranie stron ─────────────────────────────────────────────────────────
+# ─── Pobieranie stron ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
     try:
         async with session.get(url, headers={"User-Agent": "Mozilla/5.0"}) as r:
@@ -295,7 +295,7 @@ async def fetch(session: aiohttp.ClientSession, url: str) -> str | None:
     except Exception:
         return None
 
-# ─── Scrapery ────────────────────────────────────────────────────────────────
+# ─── Scrapery ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 headers = {"User-Agent": "Mozilla/5.0"}
 
 async def get_meme_from_jeja():
@@ -434,12 +434,13 @@ async def get_random_memes(count: int = 2):
         if meme and meme not in seen_memes and meme not in memes:
             memes.append(meme)
             seen_memes.append(meme)
-            if len(seen_memes) > 20:
-                seen_memes.pop(0)
+        # usuń duplikaty i ogranicz długość
+            seen_memes[:] = list(dict.fromkeys(seen_memes))[-100:]
+            save_memory()
 
     return memes
 
-# ─── Losowe komentarze ────────────────────────────────────────────────────────
+# ─── Losowe komentarze ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 meme_comments = [
     "XD",
     "🔥🔥🔥",
@@ -488,19 +489,39 @@ async def on_message(message: discord.Message):
             await message.channel.send("⚠️ Nie udało się znaleźć memów!")
         return
 
-    # ─── Komenda "ankieta" ───────────────────────────
+    # ─── Komenda "ankieta" ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     if content == "ankieta":
         await send_ankieta()
         await message.add_reaction("✅")
         return
 
-    # ─── drink ───────────────────────────
+    # ─── drink ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     if "inkluzif" in content:
         await send_drink_ankieta()
         await message.add_reaction("🍸")
         return
 
-    # ─── Reakcja ❤️ ─────────────────────────────────
+    #    Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    @bot.command(name="pamięć")
+async def pamięc(ctx):
+    """Pokazuje, ile rzeczy bot ma zapamiętane."""
+    memy = len(memory.get("seen_memes", []))
+    obrazy = len(memory.get("seen_images", []))
+    podryw = len(memory.get("recent_pickup_lines", []))
+    hot = len(memory.get("recent_hot_responses", []))
+
+    msg = (
+        f"📊 **Stan pamięci bota:**\n"
+        f"🧠 Memy: {memy}\n"
+        f"🖼️ Obrazy: {obrazy}\n"
+        f"💬 Teksty podrywu: {podryw}\n"
+        f"🔥 Odpowiedzi hot: {hot}"
+    )
+
+    # tylko na kanale, gdzie użyto komendy
+    await ctx.send(msg)
+
+    # ─── Reakcja ❤️ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     HEART_EMOJIS = [
         "<3", "❤", "❤️", "♥️", "♥",
         "🤍", "💙", "🩵", "💚", "💛", "💜",
@@ -526,19 +547,21 @@ async def on_message(message: discord.Message):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 available_images = [f for f in files if f not in seen_images] or files
-                img = random.choice(available_images)
-                seen_images.append(img)
-                if len(seen_images) > 500:
-                    seen_images.pop(0)
-                    save_memory()
+                
+                seen_images.append(os.path.basename(img_path))
+                # usuń duplikaty i ogranicz długość listy
+                seen_images[:] = list(dict.fromkeys(seen_images))[-500:]
+                save_memory()
 
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
+
+        save_memory()  # <── ZAPIS NA PEWNO
         return
 
-    # ─── Reakcja "gorąco 🔥" ─────────────────────────
+    # ─── Reakcja "gorąco 🔥" ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     if content in ["gorąco?", "goraco?", "🔥"]:
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "hot"
@@ -551,7 +574,7 @@ async def on_message(message: discord.Message):
             recent_hot_responses.append(response_text)
             if len(recent_hot_responses) > 500:
                 recent_hot_responses.pop(0)
-                save_memory()
+            save_memory()
 
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -560,7 +583,7 @@ async def on_message(message: discord.Message):
                 seen_images.append(os.path.basename(img_path))
                 if len(seen_images) > 500:
                     seen_images.pop(0)
-                    save_memory()
+                save_memory()
                 
                 await target_channel.send(response_text, file=discord.File(img_path))
                 return
@@ -591,7 +614,7 @@ async def on_message(message: discord.Message):
 
     # ─── Domyślnie przepuszczaj inne wiadomości ─────
     await bot.process_commands(message)
-
+    save_memory()
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
