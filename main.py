@@ -554,7 +554,7 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
             response_text = random.choice(available)
             recent_hot_responses.append(response_text)
-                recent_hot_responses[:] = list(dict.fromkeys(recent_hot_responses))[-70:]
+            recent_hot_responses[:] = list(dict.fromkeys(recent_hot_responses))[-70:]
             save_memory()
 
         if os.path.exists(folder):
