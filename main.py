@@ -488,29 +488,31 @@ async def on_message(message: discord.Message):
                 await message.channel.send(m)
         else:
             await message.channel.send("⚠️ Nie udało się znaleźć memów!")
+        await bot.process_commands(message)
         return
 
-    # ─── Komenda "ankieta" ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ─── Komenda "ankieta" ─────────────────────────────
     if content == "ankieta":
         await send_ankieta()
         await message.add_reaction("✅")
+        await bot.process_commands(message)
         return
 
-    # ─── drink ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ─── Komenda "drink" ─────────────────────────────
     if "inkluzif" in content:
         await send_drink_ankieta()
         await message.add_reaction("🍸")
+        await bot.process_commands(message)
         return
 
-
-    # ─── Reakcja ❤️ ───────────────────────────────────────────────────────────────────────────
+    # ─── Reakcja ❤️ ─────────────────────────────
     HEART_EMOJIS = [
         "<3", "❤", "❤️", "♥️", "♥",
         "🤍", "💙", "🩵", "💚", "💛", "💜",
         "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖",
     ]
 
-    if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
+    if any(heart in content for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "images"
 
@@ -524,27 +526,26 @@ async def on_message(message: discord.Message):
             recent_love_responses[:] = list(dict.fromkeys(recent_love_responses))[-100:]
             save_memory()
 
-        # losowy obrazek (bez duplikatów)
+        # losowy obrazek
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             available_images = [f for f in files if f not in seen_images_love] or files
-            
             img = random.choice(available_images)
             seen_images_love.append(img)
             seen_images_love[:] = list(dict.fromkeys(seen_images_love))[-500:]
             save_memory()
 
-        # wysyłanie odpowiedzi
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
 
+        await bot.process_commands(message)
         return
 
-    # ─── Reakcja "gorąco 🔥" ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    if content in ["gorąco?", "goraco?", "🔥"]:
+    # ─── Reakcja 🔥 ─────────────────────────────
+    if "🔥" in content or "gorąco" in content or "goraco" in content:
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "hot"
 
@@ -563,40 +564,36 @@ async def on_message(message: discord.Message):
                 img_path = os.path.join(folder, random.choice(files))
                 seen_images_hot.append(os.path.basename(img_path))
                 seen_images_hot[:] = list(dict.fromkeys(seen_images_hot))[-500:]
-                seen_images.pop(0)
                 save_memory()
-                
                 await target_channel.send(response_text, file=discord.File(img_path))
+                await bot.process_commands(message)
                 return
 
         await target_channel.send(f"{response_text} (ale brak obrazków w folderze!)")
+        await bot.process_commands(message)
         return
 
-    # ─── Reakcja "uyu" ───────────────────────────────
+    # ─── Inne teksty ─────────────────────────────
     if content.replace("?", "") == "sztefyn, co będziesz robił w weekend":
         folder = "photo"
-        img = None
-
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                img = random.choice(files)
-
-        if img:
+        if os.path.exists(folder) and os.listdir(folder):
+            img = random.choice(os.listdir(folder))
             await message.channel.send(
                 "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3 ",
                 file=discord.File(os.path.join(folder, img))
             )
         else:
             await message.channel.send(
-                "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3  (ale brak obrazków w folderze!)"
+                "A co ja mogę robić w weekend? Będę... oglądał Wasze dramy <3 (ale brak obrazków w folderze!)"
             )
-            return
-
-    # ─── Domyślnie przepuszczaj inne wiadomości ─────
         await bot.process_commands(message)
-        save_memory()
+        return
 
+    # ─── NAJWAŻNIEJSZE ─────────────────────────────
+    # Zawsze przepuszczaj pozostałe wiadomości do komend
+    await bot.process_commands(message)
+    save_memory()
+    
 # ─── Komendy pamięci ───────────────────────────────────────────────────────────
 @bot.command(name="pamięć")
 async def pamięc(ctx):
