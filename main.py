@@ -521,7 +521,7 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
             response_text = random.choice(available)
             recent_love_responses.append(response_text)
-                recent_love_responses[:] = list(dict.fromkeys(recent_love_responses))[-100:]
+            recent_love_responses[:] = list(dict.fromkeys(recent_love_responses))[-100:]
             save_memory()
 
         # losowy obrazek (bez duplikatów)
