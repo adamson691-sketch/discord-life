@@ -563,7 +563,7 @@ async def on_message(message: discord.Message):
                 img_path = os.path.join(folder, random.choice(files))
                 seen_images_hot.append(os.path.basename(img_path))
                 seen_images_hot[:] = list(dict.fromkeys(seen_images_hot))[-500:]
-                    seen_images.pop(0)
+                seen_images.pop(0)
                 save_memory()
                 
                 await target_channel.send(response_text, file=discord.File(img_path))
