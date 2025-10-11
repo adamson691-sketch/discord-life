@@ -79,6 +79,24 @@ recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
 seen_images_love: list[str] = memory.get("seen_images_love", [])
 seen_images_hot: list[str] = memory.get("seen_images_hot", [])
 
+# 🔒 blokada zapisu (żeby uniknąć kolizji)
+save_lock = asyncio.Lock()
+
+# ─── Funkcja zapisu pamięci ───────────────────────
+async def save_memory():
+    async with save_lock:
+        try:
+            with open("memory.json", "w", encoding="utf-8") as f:
+                json.dump({
+                    "recent_love_responses": recent_love_responses,
+                    "recent_hot_responses": recent_hot_responses,
+                    "seen_images_love": seen_images_love,
+                    "seen_images_hot": seen_images_hot,
+                }, f, ensure_ascii=False, indent=2)
+            print("💾 Pamięć zapisana pomyślnie.")
+        except Exception as e:
+            print("❌ Błąd przy zapisie pamięci:", e)
+
 # walidacja tokena
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Environment Variables).")
