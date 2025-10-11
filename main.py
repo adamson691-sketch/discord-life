@@ -594,69 +594,6 @@ async def on_message(message: discord.Message):
     await bot.process_commands(message)
     save_memory()
     
-# ─── Komendy pamięci ───────────────────────────────────────────────────────────
-@bot.command(name="pamięć")
-async def pamięc(ctx):
-    """Pokazuje, ile rzeczy bot ma zapamiętane."""
-    memy = len(memory.get("seen_memes", []))
-    obrazy_love = len(memory.get("seen_images_love", []))
-    obrazy_hot = len(memory.get("seen_images_hot", []))
-    teksty_podryw = len(memory.get("recent_love_responses", []))
-    teksty_hot = len(memory.get("recent_hot_responses", []))
-
-    msg = (
-        f"📊 **Stan pamięci bota:**\n"
-        f"🧠 Memy: {memy}\n"
-        f"❤️ Obrazy (love): {obrazy_love}\n"
-        f"🔥 Obrazy (hot): {obrazy_hot}\n"
-        f"💬 Teksty podrywu: {teksty_podryw}\n"
-        f"🔥 Teksty hot: {teksty_hot}"
-    )
-    await ctx.send(msg)
-
-
-@bot.command(name="resetpamięć")
-async def reset_pamięć(ctx):
-    """Czyści zapamiętane memy, obrazy i teksty po potwierdzeniu."""
-    confirm_msg = await ctx.send(
-        "⚠️ **Uwaga!** Ta komenda usunie wszystkie zapamiętane memy, obrazy i odpowiedzi.\n"
-        "Kliknij ✅ aby potwierdzić lub ❌ aby anulować."
-    )
-
-    await confirm_msg.add_reaction("✅")
-    await confirm_msg.add_reaction("❌")
-
-    def check(reaction, user):
-        return (
-            user == ctx.author
-            and str(reaction.emoji) in ["✅", "❌"]
-            and reaction.message.id == confirm_msg.id
-        )
-
-    try:
-        reaction, _ = await bot.wait_for("reaction_add", timeout=30.0, check=check)
-        if str(reaction.emoji) == "✅":
-            memory["seen_memes"].clear()
-            memory["seen_images_love"].clear()
-            memory["seen_images_hot"].clear()
-            memory["recent_love_responses"].clear()
-            memory["recent_hot_responses"].clear()
-
-            # wyczyść też bieżące listy w pamięci runtime
-            seen_memes.clear()
-            seen_images_love.clear()
-            seen_images_hot.clear()
-            recent_love_responses.clear()
-            recent_hot_responses.clear()
-
-            save_memory()
-            await ctx.send("🧹 Pamięć została **zresetowana**.")
-        else:
-            await ctx.send("❌ Reset pamięci **anulowany**.")
-    except asyncio.TimeoutError:
-        await ctx.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
-    
-
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
