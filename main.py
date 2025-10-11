@@ -508,7 +508,7 @@ async def on_message(message: discord.Message):
 
     if any(heart in message.content.replace(" ", "") for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
-        folder = "imagess"
+        folder = "images"
 
         # losowy tekst z pliku Podryw.txt
         if not pickup_lines_love:
