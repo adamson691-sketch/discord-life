@@ -520,6 +520,7 @@ async def on_message(message: discord.Message):
 
         # tylko na kanale, gdzie użyto komendy
         await ctx.send(msg)
+        return
 
     # ─── Reakcja ❤️ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     HEART_EMOJIS = [
