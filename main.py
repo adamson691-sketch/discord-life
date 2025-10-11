@@ -501,25 +501,25 @@ async def on_message(message: discord.Message):
         await message.add_reaction("🍸")
         return
 
-    #    Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ────Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     @bot.command(name="pamięć")
-async def pamięc(ctx):
-    """Pokazuje, ile rzeczy bot ma zapamiętane."""
-    memy = len(memory.get("seen_memes", []))
-    obrazy = len(memory.get("seen_images", []))
-    podryw = len(memory.get("recent_pickup_lines", []))
-    hot = len(memory.get("recent_hot_responses", []))
+    async def pamięc(ctx):
+        """Pokazuje, ile rzeczy bot ma zapamiętane."""
+        memy = len(memory.get("seen_memes", []))
+        obrazy = len(memory.get("seen_images", []))
+        podryw = len(memory.get("recent_pickup_lines", []))
+        hot = len(memory.get("recent_hot_responses", []))
 
-    msg = (
-        f"📊 **Stan pamięci bota:**\n"
-        f"🧠 Memy: {memy}\n"
-        f"🖼️ Obrazy: {obrazy}\n"
-        f"💬 Teksty podrywu: {podryw}\n"
-        f"🔥 Odpowiedzi hot: {hot}"
-    )
+        msg = (
+            f"📊 **Stan pamięci bota:**\n"
+            f"🧠 Memy: {memy}\n"
+            f"🖼️ Obrazy: {obrazy}\n"
+            f"💬 Teksty podrywu: {podryw}\n"
+            f"🔥 Odpowiedzi hot: {hot}"
+        )
 
-    # tylko na kanale, gdzie użyto komendy
-    await ctx.send(msg)
+        # tylko na kanale, gdzie użyto komendy
+        await ctx.send(msg)
 
     # ─── Reakcja ❤️ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     HEART_EMOJIS = [
