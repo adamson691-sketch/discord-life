@@ -573,6 +573,66 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
+   # ─── Reakcje pamięci ─────────────────────────────
+if "pokażpamięć" in content or "pokaż pamięć" in content or "pokazpamiec" in content or "pokaz pamiec" in content:
+    memy = len(memory.get("seen_memes", []))
+    obrazy_love = len(memory.get("seen_images_love", []))
+    obrazy_hot = len(memory.get("seen_images_hot", []))
+    teksty_podryw = len(memory.get("recent_love_responses", []))
+    teksty_hot = len(memory.get("recent_hot_responses", []))
+
+    msg = (
+        f"📊 **Stan pamięci bota:**\n"
+        f"🧠 Memy: {memy}\n"
+        f"❤️ Obrazy (love): {obrazy_love}\n"
+        f"🔥 Obrazy (hot): {obrazy_hot}\n"
+        f"💬 Teksty podrywu: {teksty_podryw}\n"
+        f"🔥 Teksty hot: {teksty_hot}"
+    )
+    await message.channel.send(msg)
+    return
+
+
+if "resetpamięć" in content or "reset pamięć" in content or "resetpamiec" in content or "reset pamiec" in content:
+    confirm_msg = await message.channel.send(
+        "⚠️ **Uwaga!** Ta operacja usunie wszystkie zapamiętane memy, obrazy i teksty.\n"
+        "Kliknij ✅ aby potwierdzić lub ❌ aby anulować."
+    )
+    await confirm_msg.add_reaction("✅")
+    await confirm_msg.add_reaction("❌")
+
+    def check(reaction, user):
+        return (
+            user == message.author
+            and str(reaction.emoji) in ["✅", "❌"]
+            and reaction.message.id == confirm_msg.id
+        )
+
+    try:
+        reaction, _ = await bot.wait_for("reaction_add", timeout=30.0, check=check)
+        if str(reaction.emoji) == "✅":
+            memory["seen_memes"].clear()
+            memory["seen_images_love"].clear()
+            memory["seen_images_hot"].clear()
+            memory["recent_love_responses"].clear()
+            memory["recent_hot_responses"].clear()
+
+            # wyczyść też bieżące listy w pamięci runtime
+            seen_memes.clear()
+            seen_images_love.clear()
+            seen_images_hot.clear()
+            recent_love_responses.clear()
+            recent_hot_responses.clear()
+
+            await save_memory()
+            await message.channel.send("🧹 Pamięć została **zresetowana**.")
+        else:
+            await message.channel.send("❌ Reset pamięci **anulowany**.")
+    except asyncio.TimeoutError:
+        await message.channel.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
+    return
+    
+    
     # ─── Inne teksty ─────────────────────────────
     if content.replace("?", "") == "sztefyn, co będziesz robił w weekend":
         folder = "photo"
@@ -588,6 +648,7 @@ async def on_message(message: discord.Message):
             )
         await bot.process_commands(message)
         return
+        
 
     # ─── NAJWAŻNIEJSZE ─────────────────────────────
     # Zawsze przepuszczaj pozostałe wiadomości do komend
