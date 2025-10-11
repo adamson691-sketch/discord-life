@@ -656,13 +656,13 @@ async def on_message(message: discord.Message):
                 recent_hot_responses.clear()
                 save_memory()
                 
-    await ctx.send("🧹 Pamięć została **zresetowana**.")
+                await ctx.send("🧹 Pamięć została **zresetowana**.")
                 
                 await ctx.send("🧹 Pamięć została **zresetowana**.")
             else:
                 await ctx.send("❌ Reset pamięci **anulowany**.")
         except asyncio.TimeoutError:
-                await ctx.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
+            await ctx.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
     
 
 
