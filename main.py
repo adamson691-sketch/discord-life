@@ -597,27 +597,6 @@ async def on_message(message: discord.Message):
     await bot.process_commands(message)
     save_memory()
     
-    # ────Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    @bot.command(name="pamięć")
-    async def pamięc(ctx):
-        """Pokazuje, ile rzeczy bot ma zapamiętane."""
-        memy = len(memory.get("seen_memes", []))
-        obrazy = len(memory.get("seen_images", []))
-        podryw = len(memory.get("recent_pickup_lines", []))
-        hot = len(memory.get("recent_hot_responses", []))
-
-        msg = (
-            f"📊 **Stan pamięci bota:**\n"
-            f"🧠 Memy: {memy}\n"
-            f"🖼️ Obrazy: {obrazy}\n"
-            f"💬 Teksty podrywu: {podryw}\n"
-            f"🔥 Odpowiedzi hot: {hot}"
-        )
-
-        # tylko na kanale, gdzie użyto komendy
-        await ctx.send(msg)
-        return
-
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
@@ -679,6 +658,27 @@ async def schedule_ankiety():
         print(f"⏳ Czekam {wait_seconds/3600:.2f}h do ankiety")
         await asyncio.sleep(wait_seconds)
         await send_ankieta()
+
+    # ────Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    @bot.command(name="pamięć")
+    async def pamięc(ctx):
+        """Pokazuje, ile rzeczy bot ma zapamiętane."""
+        memy = len(memory.get("seen_memes", []))
+        obrazy = len(memory.get("seen_images", []))
+        podryw = len(memory.get("recent_pickup_lines", []))
+        hot = len(memory.get("recent_hot_responses", []))
+
+        msg = (
+            f"📊 **Stan pamięci bota:**\n"
+            f"🧠 Memy: {memy}\n"
+            f"🖼️ Obrazy: {obrazy}\n"
+            f"💬 Teksty podrywu: {podryw}\n"
+            f"🔥 Odpowiedzi hot: {hot}"
+        )
+
+        # tylko na kanale, gdzie użyto komendy
+        await ctx.send(msg)
+        return
 
 
 # ─── Start ─────────────────────────────────────────────────────────────────────
