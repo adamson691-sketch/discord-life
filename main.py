@@ -607,7 +607,7 @@ if "pokażpamięć" in content or "pokaż pamięć" in content or "pokazpamiec" 
         f"💬 Teksty podrywu: {teksty_podryw}\n"
         f"🔥 Teksty hot: {teksty_hot}"
             )
-        await message.channel.send(msg)
+            await message.channel.send(msg)
         return
 
 
