@@ -587,9 +587,9 @@ async def on_message(message: discord.Message):
                 await bot.process_commands(message)
                 return
 
-        await target_channel.send(f"{response_text} (ale brak obrazków w folderze!)")
-        await bot.process_commands(message)
-        return
+                await target_channel.send(f"{response_text} (ale brak obrazków w folderze!)")
+                await bot.process_commands(message)
+                return
 
    # ─── Reakcje pamięci ─────────────────────────────
 if "pokażpamięć" in content or "pokaż pamięć" in content or "pokazpamiec" in content or "pokaz pamiec" in content:
