@@ -654,8 +654,8 @@ async def on_message(message: discord.Message):
                 seen_images_hot.clear()
                 recent_love_responses.clear()
                 recent_hot_responses.clear()
-
-    save_memory()
+                save_memory()
+                
     await ctx.send("🧹 Pamięć została **zresetowana**.")
                 
                 await ctx.send("🧹 Pamięć została **zresetowana**.")
