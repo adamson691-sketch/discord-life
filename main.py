@@ -71,6 +71,10 @@ memory["seen_images"] = list(dict.fromkeys(memory.get("seen_images", [])))
 recent_love_responses: list[str] = memory.get("recent_love_responses", [])
 recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
 
+# runtimeowe listy pobrane z pliku pamięci
+seen_memes: list[str] = memory.get("seen_memes", [])
+seen_images: list[str] = memory.get("seen_images", [])
+
 # walidacja tokena
 if not TOKEN:
     print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych (Render Environment Variables).")
@@ -276,13 +280,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True  # <── WAŻNE: pozwala wykrywać reakcje emoji
 bot = commands.Bot(command_prefix="!", intents=intents)
-
-# przechowuje 20 ostatnich linków wysłanych memów (by nie duplikować)
-seen_memes: list[str] = []
-# przechowuje 20 ostatnich wysłanych obrazków z folderu images
-seen_images: list[str] = []
-# przechowuje ostatnie odpowiedzi na ❤️ (by nie powtarzać za często)
-recent_responses: list[str] = []
 
 
 # ─── Pobieranie stron ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -597,7 +594,62 @@ async def on_message(message: discord.Message):
     # ─── Domyślnie przepuszczaj inne wiadomości ─────
     await bot.process_commands(message)
     save_memory()
+
+    # ────Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    @bot.command(name="pamięć")
+    async def pamięc(ctx):
+        """Pokazuje, ile rzeczy bot ma zapamiętane."""
+        memy = len(memory.get("seen_memes", []))
+        obrazy = len(memory.get("seen_images", []))
+        podryw = len(memory.get("recent_pickup_lines", []))
+        hot = len(memory.get("recent_hot_responses", []))
+
+        msg = (
+            f"📊 **Stan pamięci bota:**\n"
+            f"🧠 Memy: {memy}\n"
+            f"🖼️ Obrazy: {obrazy}\n"
+            f"💬 Teksty podrywu: {podryw}\n"
+            f"🔥 Odpowiedzi hot: {hot}"
+        )
+
+        # tylko na kanale, gdzie użyto komendy
+        await ctx.send(msg)
+        return
+
+    @bot.command(name="resetpamięć")
+    async def reset_pamięć(ctx):
+        """Czyści zapamiętane memy, obrazy i teksty po potwierdzeniu."""
+        confirm_msg = await ctx.send(
+            "⚠️ **Uwaga!** Ta komenda usunie wszystkie zapamiętane memy, obrazy i odpowiedzi.\n"
+            "Kliknij ✅ aby potwierdzić lub ❌ aby anulować."
+        )
     
+        # dodaj reakcje do wiadomości
+        await confirm_msg.add_reaction("✅")
+        await confirm_msg.add_reaction("❌")
+    
+        def check(reaction, user):
+            return (
+            user == ctx.author
+                and str(reaction.emoji) in ["✅", "❌"]
+                and reaction.message.id == confirm_msg.id
+            )
+
+        try:
+            reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
+            if str(reaction.emoji) == "✅":
+                memory["seen_memes"] = []
+                memory["seen_images"] = []
+                memory["recent_pickup_lines"] = []
+                memory["recent_hot_responses"] = []
+                save_memory()
+                await ctx.send("🧹 Pamięć została **zresetowana**.")
+            else:
+                await ctx.send("❌ Reset pamięci **anulowany**.")
+        except asyncio.TimeoutError:
+                await ctx.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
+    
+
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
 async def send_memes():
@@ -660,60 +712,7 @@ async def schedule_ankiety():
         await asyncio.sleep(wait_seconds)
         await send_ankieta()
 
-    # ────Pamięć ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    @bot.command(name="pamięć")
-    async def pamięc(ctx):
-        """Pokazuje, ile rzeczy bot ma zapamiętane."""
-        memy = len(memory.get("seen_memes", []))
-        obrazy = len(memory.get("seen_images", []))
-        podryw = len(memory.get("recent_pickup_lines", []))
-        hot = len(memory.get("recent_hot_responses", []))
 
-        msg = (
-            f"📊 **Stan pamięci bota:**\n"
-            f"🧠 Memy: {memy}\n"
-            f"🖼️ Obrazy: {obrazy}\n"
-            f"💬 Teksty podrywu: {podryw}\n"
-            f"🔥 Odpowiedzi hot: {hot}"
-        )
-
-        # tylko na kanale, gdzie użyto komendy
-        await ctx.send(msg)
-        return
-
-    @bot.command(name="resetpamięć")
-    async def reset_pamięć(ctx):
-        """Czyści zapamiętane memy, obrazy i teksty po potwierdzeniu."""
-        confirm_msg = await ctx.send(
-            "⚠️ **Uwaga!** Ta komenda usunie wszystkie zapamiętane memy, obrazy i odpowiedzi.\n"
-            "Kliknij ✅ aby potwierdzić lub ❌ aby anulować."
-        )
-    
-        # dodaj reakcje do wiadomości
-        await confirm_msg.add_reaction("✅")
-        await confirm_msg.add_reaction("❌")
-    
-        def check(reaction, user):
-            return (
-            user == ctx.author
-                and str(reaction.emoji) in ["✅", "❌"]
-                and reaction.message.id == confirm_msg.id
-            )
-
-        try:
-            reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
-            if str(reaction.emoji) == "✅":
-                memory["seen_memes"] = []
-                memory["seen_images"] = []
-                memory["recent_pickup_lines"] = []
-                memory["recent_hot_responses"] = []
-                save_memory()
-                await ctx.send("🧹 Pamięć została **zresetowana**.")
-            else:
-                await ctx.send("❌ Reset pamięci **anulowany**.")
-        except asyncio.TimeoutError:
-                await ctx.send("⌛ Czas na potwierdzenie minął. Reset anulowany.")
-    
 
 # ─── Start ─────────────────────────────────────────────────────────────────────
 @bot.event
