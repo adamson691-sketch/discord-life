@@ -502,7 +502,7 @@ async def on_message(message: discord.Message):
         return
 
 
-    # ─── Reakcja ❤️ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ─── Reakcja ❤️ ───────────────────────────────────────────────────────────────────────────
     HEART_EMOJIS = [
         "<3", "❤", "❤️", "♥️", "♥",
         "🤍", "💙", "🩵", "💚", "💛", "💜",
@@ -513,6 +513,7 @@ async def on_message(message: discord.Message):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "imagess"
 
+        # losowy tekst z pliku Podryw.txt
         if not pickup_lines_love:
             response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
         else:
@@ -521,25 +522,25 @@ async def on_message(message: discord.Message):
             recent_love_responses.append(response_text)
             if len(recent_love_responses) > 120:
                 recent_love_responses.pop(0)
-                save_memory()
+            save_memory()
 
+        # losowy obrazek (bez duplikatów)
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                available_images = [f for f in files if f not in seen_images] or files
-                
-                seen_images.append(os.path.basename(img_path))
-                # usuń duplikaty i ogranicz długość listy
-                seen_images[:] = list(dict.fromkeys(seen_images))[-500:]
-                save_memory()
+            available_images = [f for f in files if f not in seen_images] or files
+            img = random.choice(available_images)
+            seen_images.append(img)
+            # usuń duplikaty i ogranicz długość
+            seen_images[:] = list(dict.fromkeys(seen_images))[-500:]
+            save_memory()
 
+        # wysyłanie odpowiedzi
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
 
-        save_memory()  # <── ZAPIS NA PEWNO
         return
 
     # ─── Reakcja "gorąco 🔥" ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
