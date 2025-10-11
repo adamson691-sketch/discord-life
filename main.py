@@ -27,7 +27,8 @@ def load_memory():
 def save_memory():
     data = {
         "seen_memes": seen_memes,
-        "seen_images": seen_images,
+        "seen_images_love": seen_images_love,
+        "seen_images_hot": seen_images_hot,
         "recent_love_responses": recent_love_responses,
         "recent_hot_responses": recent_hot_responses,
     }
@@ -66,14 +67,17 @@ print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 
 # ─── Pamięć ────────────────────────────────────────
 memory = load_memory()
-memory["seen_memes"] = list(dict.fromkeys(memory.get("seen_memes", [])))
-memory["seen_images"] = list(dict.fromkeys(memory.get("seen_images", [])))
+memory["seen_images_love"] = list(dict.fromkeys(memory.get("seen_images_love", [])))
+memory["seen_images_hot"] = list(dict.fromkeys(memory.get("seen_images_hot", [])))
+memory["recent_love_responses"] = list(dict.fromkeys(memory.get("recent_love_responses", [])))
+memory["recent_hot_responses"] = list(dict.fromkeys(memory.get("recent_hot_responses", [])))
+
 recent_love_responses: list[str] = memory.get("recent_love_responses", [])
 recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
 
 # runtimeowe listy pobrane z pliku pamięci
-seen_memes: list[str] = memory.get("seen_memes", [])
-seen_images: list[str] = memory.get("seen_images", [])
+seen_images_love: list[str] = memory.get("seen_images_love", [])
+seen_images_hot: list[str] = memory.get("seen_images_hot", [])
 
 # walidacja tokena
 if not TOKEN:
@@ -517,19 +521,18 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
             response_text = random.choice(available)
             recent_love_responses.append(response_text)
-            if len(recent_love_responses) > 120:
-                recent_love_responses.pop(0)
+                recent_love_responses[:] = list(dict.fromkeys(recent_love_responses))[-100:]
             save_memory()
 
         # losowy obrazek (bez duplikatów)
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            available_images = [f for f in files if f not in seen_images] or files
+            available_images = [f for f in files if f not in seen_images_love] or files
+            
             img = random.choice(available_images)
-            seen_images.append(img)
-            # usuń duplikaty i ogranicz długość
-            seen_images[:] = list(dict.fromkeys(seen_images))[-500:]
+            seen_images_love.append(img)
+            seen_images_love[:] = list(dict.fromkeys(seen_images_love))[-500:]
             save_memory()
 
         # wysyłanie odpowiedzi
@@ -551,16 +554,15 @@ async def on_message(message: discord.Message):
             available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
             response_text = random.choice(available)
             recent_hot_responses.append(response_text)
-            if len(recent_hot_responses) > 500:
-                recent_hot_responses.pop(0)
+                recent_hot_responses[:] = list(dict.fromkeys(recent_hot_responses))[-70:]
             save_memory()
 
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             if files:
                 img_path = os.path.join(folder, random.choice(files))
-                seen_images.append(os.path.basename(img_path))
-                if len(seen_images) > 500:
+                seen_images_hot.append(os.path.basename(img_path))
+                seen_images_hot[:] = list(dict.fromkeys(seen_images_hot))[-500:]
                     seen_images.pop(0)
                 save_memory()
                 
@@ -600,16 +602,18 @@ async def on_message(message: discord.Message):
     async def pamięc(ctx):
         """Pokazuje, ile rzeczy bot ma zapamiętane."""
         memy = len(memory.get("seen_memes", []))
-        obrazy = len(memory.get("seen_images", []))
-        podryw = len(memory.get("recent_pickup_lines", []))
-        hot = len(memory.get("recent_hot_responses", []))
+        obrazy_love = len(memory.get("seen_images_love", []))
+        obrazy_hot = len(memory.get("seen_images_hot", []))
+        teksty_podryw = len(memory.get("recent_love_responses", []))
+        teksty_hot = len(memory.get("recent_hot_responses", []))
 
         msg = (
             f"📊 **Stan pamięci bota:**\n"
             f"🧠 Memy: {memy}\n"
-            f"🖼️ Obrazy: {obrazy}\n"
-            f"💬 Teksty podrywu: {podryw}\n"
-            f"🔥 Odpowiedzi hot: {hot}"
+            f"❤️ Obrazy (love): {obrazy_love}\n"
+            f"🔥 Obrazy (hot): {obrazy_hot}\n"
+            f"💬 Teksty podrywu: {teksty_podryw}\n"
+            f"🔥 Teksty hot: {teksty_hot}"
         )
 
         # tylko na kanale, gdzie użyto komendy
@@ -639,10 +643,21 @@ async def on_message(message: discord.Message):
             reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
             if str(reaction.emoji) == "✅":
                 memory["seen_memes"] = []
-                memory["seen_images"] = []
-                memory["recent_pickup_lines"] = []
+                memory["seen_images_love"] = []
+                memory["seen_images_hot"] = []
+                memory["recent_love_responses"] = []
                 memory["recent_hot_responses"] = []
-                save_memory()
+
+            # wyczyść też bieżące listy w pamięci runtime
+                seen_memes.clear()
+                seen_images_love.clear()
+                seen_images_hot.clear()
+                recent_love_responses.clear()
+                recent_hot_responses.clear()
+
+    save_memory()
+    await ctx.send("🧹 Pamięć została **zresetowana**.")
+                
                 await ctx.send("🧹 Pamięć została **zresetowana**.")
             else:
                 await ctx.send("❌ Reset pamięci **anulowany**.")
