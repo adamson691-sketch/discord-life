@@ -22,11 +22,10 @@ def load_memory():
                 return json.load(f)
         except json.JSONDecodeError:
             print("⚠️ Błąd w memory.json – resetuję dane.")
-    return {"seen_memes": [], "seen_images": [], "recent_love_responses": [], "recent_hot_responses": []}
+    return  [], "seen_images": [], "recent_love_responses": [], "recent_hot_responses": []}
 
 def save_memory():
     data = {
-        "seen_memes": seen_memes,
         "seen_images_love": seen_images_love,
         "seen_images_hot": seen_images_hot,
         "recent_love_responses": recent_love_responses,
@@ -351,6 +350,7 @@ async def get_meme_from_memowo():
 
 
 async def get_random_memes(count: int = 2):
+    """Pobiera losowe memy z różnych stron internetowych — bez zapisywania historii."""
     memes: list[str] = []
     funcs = [
         get_meme_from_jeja,
@@ -366,18 +366,17 @@ async def get_random_memes(count: int = 2):
         get_meme_from_memowo,
     ]
 
-    attempts = 0
-    while len(memes) < count and attempts < 20:
-        func = random.choice(funcs)
-        meme = await func()
-        attempts += 1
+    random.shuffle(funcs)
 
-        if meme and meme not in seen_memes and meme not in memes:
-            memes.append(meme)
-            seen_memes.append(meme)
-        # usuń duplikaty i ogranicz długość
-            seen_memes[:] = list(dict.fromkeys(seen_memes))[-100:]
-            save_memory()
+    for func in funcs:
+        try:
+            meme = await func()
+            if meme and meme not in memes:
+                memes.append(meme)
+            if len(memes) >= count:
+                break
+        except Exception as e:
+            print(f"Błąd podczas pobierania mema z {func.__name__}: {e}")
 
     return memes
 
@@ -515,7 +514,6 @@ async def on_message(message: discord.Message):
 
    # ─── Reakcje pamięci ─────────────────────────────
     if "pokażpamięć" in content or "pokaż pamięć" in content or "pokazpamiec" in content or "pokaz pamiec" in content:
-        memy = len(memory.get("seen_memes", []))
         obrazy_love = len(memory.get("seen_images_love", []))
         obrazy_hot = len(memory.get("seen_images_hot", []))
         teksty_podryw = len(memory.get("recent_love_responses", []))
@@ -523,7 +521,6 @@ async def on_message(message: discord.Message):
 
         msg = (
             f"📊 **Stan pamięci bota:**\n"
-            f"🧠 Memy: {memy}\n"
             f"❤️ Obrazy (love): {obrazy_love}\n"
             f"🔥 Obrazy (hot): {obrazy_hot}\n"
             f"💬 Teksty podrywu: {teksty_podryw}\n"
@@ -551,14 +548,12 @@ async def on_message(message: discord.Message):
     try:
         reaction, _ = await bot.wait_for("reaction_add", timeout=30.0, check=check)
         if str(reaction.emoji) == "✅":
-            memory["seen_memes"].clear()
             memory["seen_images_love"].clear()
             memory["seen_images_hot"].clear()
             memory["recent_love_responses"].clear()
             memory["recent_hot_responses"].clear()
 
             # wyczyść też bieżące listy w pamięci runtime
-            seen_memes.clear()
             seen_images_love.clear()
             seen_images_hot.clear()
             recent_love_responses.clear()
