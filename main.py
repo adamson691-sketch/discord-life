@@ -640,7 +640,7 @@ async def schedule_ankiety():
     await bot.wait_until_ready()
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(14, 35)]  # np. codziennie 10:00
+        targets = [(15, 00)]  # np. codziennie 10:00
         next_time = None
 
         for hour, minute in targets:
