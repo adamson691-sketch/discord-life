@@ -618,11 +618,11 @@ async def schedule_memes():
     await bot.wait_until_ready()
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(11, 0), (21, 37), (14,21)]
+        targets = [(11, 0), (21, 37), (14,31)]
         next_time = None
 
         for hour, minute in targets:
-            t = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+            t = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
             if t > now:
                 next_time = t
                 break
@@ -640,11 +640,11 @@ async def schedule_ankiety():
     await bot.wait_until_ready()
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(15, 0)]  # np. codziennie 10:00
+        targets = [(14, 35)]  # np. codziennie 10:00
         next_time = None
 
         for hour, minute in targets:
-            t = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+            t = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
             if t > now:
                 next_time = t
                 break
