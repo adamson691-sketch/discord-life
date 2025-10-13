@@ -22,7 +22,7 @@ def load_memory():
                 return json.load(f)
         except json.JSONDecodeError:
             print("⚠️ Błąd w memory.json – resetuję dane.")
-    return  [], "seen_images": [], "recent_love_responses": [], "recent_hot_responses": []}
+    return  "seen_images": [], "recent_love_responses": [], "recent_hot_responses": []}
 
 def save_memory():
     data = {
