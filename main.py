@@ -384,7 +384,7 @@ async def on_message(message: discord.Message):
         return
 
     # ─── Reakcja 🔥 ─────────────────────────────
-    elif any(hot in content for hot in HOT_EMOJIS):
+    elif any(hot in content for hot in 🔥):
         target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
         folder = "hot"
 
