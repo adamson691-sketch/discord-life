@@ -324,7 +324,6 @@ async def schedule_ankiety():
         await asyncio.sleep(wait_seconds)
         await send_ankieta()
 
-# ─── on_message ─────────────────────────────
 @bot.event
 async def on_message(message: discord.Message):
     global memory, recent_love_responses, recent_hot_responses, seen_images_love, seen_images_hot
@@ -350,15 +349,15 @@ async def on_message(message: discord.Message):
         await message.add_reaction("✅")
         return
 
-    # ─── Reakcja ❤️ ─────────────────────────────
+    # ─── Emoji ─────────────────────────────
     HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥", "🤍", "💙", "🩵", "💚", "💛", "💜", "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖"]
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
 
+    # ─── Reakcja ❤️ ─────────────────────────────
     if any(heart in content for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "images"
 
-        # Tekst
         if not pickup_lines_love:
             response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
         else:
@@ -368,7 +367,6 @@ async def on_message(message: discord.Message):
             memory["recent_love_responses"] = recent_love_responses[-100:]
             await save_memory_jsonbin(memory)
 
-        # Obrazek
         img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -378,7 +376,6 @@ async def on_message(message: discord.Message):
             memory["seen_images_love"] = seen_images_love[-500:]
             await save_memory_jsonbin(memory)
 
-        # Wysyłanie
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
@@ -387,32 +384,32 @@ async def on_message(message: discord.Message):
 
     # ─── Reakcja 🔥 ─────────────────────────────
     elif any(hot in content for hot in HOT_EMOJIS):
-      target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
-      folder = "hot"
+        target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
+        folder = "hot"
 
-      if not pickup_lines_hot:
-          response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
-      else:
-          available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
-          response_text = random.choice(available)
-          recent_hot_responses.append(response_text)
-          memory["recent_hot_responses"] = recent_hot_responses[-70:]
-          await save_memory_jsonbin(memory)
+        if not pickup_lines_hot:
+            response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
+        else:
+            available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
+            response_text = random.choice(available)
+            recent_hot_responses.append(response_text)
+            memory["recent_hot_responses"] = recent_hot_responses[-70:]
+            await save_memory_jsonbin(memory)
 
-      img = None
-      if os.path.exists(folder):
-          files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-          available_images = [f for f in files if f not in seen_images_hot] or files
-          img = random.choice(available_images)
-          seen_images_hot.append(img)
-          memory["seen_images_hot"] = seen_images_hot[-500:]
-          await save_memory_jsonbin(memory)
+        img = None
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            available_images = [f for f in files if f not in seen_images_hot] or files
+            img = random.choice(available_images)
+            seen_images_hot.append(img)
+            memory["seen_images_hot"] = seen_images_hot[-500:]
+            await save_memory_jsonbin(memory)
 
-      if img:
-          await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-      else:
-          await target_channel.send(response_text)
-      return
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send(response_text)
+        return
 
     # ─── Komenda OSTATNIE ─────────────────────────────
     if content == "ostatnie":
@@ -423,26 +420,35 @@ async def on_message(message: discord.Message):
                 await target_channel.send(f"📖 Brak obrazów {title_emoji} w pamięci.")
                 return
 
+            # Dzielimy na strony po 4 (2x2)
             page_size = 4
             pages = [images[i:i + page_size] for i in range(0, len(images), page_size)]
             page_index = 0
 
             async def send_page(idx):
+                page_images = pages[idx]
                 embed = discord.Embed(
-                    title=f"📖 {title_emoji} Ostatnie obrazy — strona {idx + 1}/{len(pages)}",
+                    title=f"📖 {title_emoji} Strona {idx + 1}/{len(pages)}",
+                    description=f"Ostatnie {len(images)} obrazów ({len(pages)} strony)",
                     color=0xFFD700
                 )
                 files = []
-                for i, img_name in enumerate(pages[idx]):
+                img_urls = []
+
+                # Wysyłamy 4 miniatury jako załączniki, żeby móc pokazać 2x2
+                for img_name in page_images:
                     path = os.path.join(folder, img_name)
                     if os.path.exists(path):
                         file = discord.File(path, filename=img_name)
-                        if i == 0:
-                            embed.set_image(url=f"attachment://{img_name}")
-                        else:
-                            embed.add_field(name=f"Obraz {i + 1}", value=img_name, inline=True)
                         files.append(file)
-                return await target_channel.send(embed=embed, files=files)
+                        img_urls.append(f"attachment://{img_name}")
+
+                # Discord pozwala na 1 obraz główny, więc dodajemy 4 linki w polach (symulacja 2x2)
+                for i, url in enumerate(img_urls):
+                    embed.add_field(name=f"Obraz {i+1}", value=url, inline=True)
+
+                msg = await target_channel.send(embed=embed, files=files)
+                return msg
 
             msg = await send_page(page_index)
             msg_nav = await target_channel.send("◀️ poprzednia | następna ▶️")
@@ -471,7 +477,7 @@ async def on_message(message: discord.Message):
                 except asyncio.TimeoutError:
                     break
 
-        # wysyłamy dwie “książki”
+        # Dwie książki
         love_images = memory.get("seen_images_love", [])[-20:]
         hot_images = memory.get("seen_images_hot", [])[-20:]
 
@@ -479,8 +485,8 @@ async def on_message(message: discord.Message):
         await send_book(hot_images, "hot", "🔥")
         return
 
-    # konieczne, żeby bot widział inne komendy (np. slashy)
     await bot.process_commands(message)
+
 # ─── Funkcja pomocnicza do wyboru tekstu i obrazka ─────────────────────────────
 async def prepare_response(lines_list, recent_responses, memory_dict, folder, seen_list):
     if not lines_list:
