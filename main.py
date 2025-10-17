@@ -332,11 +332,13 @@ async def on_message(message: discord.Message):
                 await message.channel.send(m)
         else:
             await message.channel.send("⚠️ Nie udało się znaleźć memów!")
+            return
 
     # ─── Komenda ankieta ─────────────────────────────
     if content == "ankieta":
         await send_ankieta()
         await message.add_reaction("✅")
+        return
 
     # ─── Reakcja ❤️ ─────────────────────────────
     HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥","🤍","💙","🩵","💚","💛","💜","🖤","🤎","🧡","💗","🩶","🩷","💖"]
@@ -363,7 +365,7 @@ async def on_message(message: discord.Message):
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
-
+            return
     # ─── Reakcja 🔥 ─────────────────────────────
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
     if any(hot in content for hot in HOT_EMOJIS):
@@ -389,7 +391,7 @@ async def on_message(message: discord.Message):
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
-
+            return
     # ─── Przepuszczanie pozostałych wiadomości do komend
     await bot.process_commands(message)
     
