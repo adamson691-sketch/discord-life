@@ -93,53 +93,71 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
 bot = commands.Bot(command_prefix="!", intents=intents)
-@bot.command(name="pamiec")
-async def show_memory(ctx):
+# ─── Komenda do wyświetlania obrazów z pamięci ─────────────────────────────
+from discord.ui import View, Button
+
+class MemoryPages(View):
+    def __init__(self, ctx, images, title, per_page=20):
+        super().__init__(timeout=120)
+        self.ctx = ctx
+        self.images = images
+        self.title = title
+        self.per_page = per_page
+        self.current = 0
+        self.message = None
+
+    async def send(self):
+        embed = self.get_embed()
+        self.message = await self.ctx.send(embed=embed, view=self)
+
+    def get_embed(self):
+        start = self.current * self.per_page
+        end = start + self.per_page
+        page_images = self.images[start:end]
+        desc = "\n".join(page_images) if page_images else "Brak obrazów na tej stronie."
+        embed = discord.Embed(
+            title=f"📂 {self.title} — strona {self.current+1}/{max(1, (len(self.images)-1)//self.per_page +1)}",
+            description=desc,
+            color=0x7289da
+        )
+        return embed
+
+    @discord.ui.button(label="◀️", style=discord.ButtonStyle.gray)
+    async def prev_button(self, interaction: discord.Interaction, button: Button):
+        if self.current > 0:
+            self.current -= 1
+            await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+
+    @discord.ui.button(label="▶️", style=discord.ButtonStyle.gray)
+    async def next_button(self, interaction: discord.Interaction, button: Button):
+        max_page = (len(self.images)-1)//self.per_page
+        if self.current < max_page:
+            self.current += 1
+            await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+
+
+@bot.command(name="pamiec_obrazy")
+async def show_images_memory(ctx):
     global memory
-    love_count = len(memory.get("seen_images_love", []))
-    hot_count = len(memory.get("seen_images_hot", []))
-    recent_love = len(memory.get("recent_love_responses", []))
-    recent_hot = len(memory.get("recent_hot_responses", []))
-    
-    msg = (
-        f"📊 **Stan pamięci bota:**\n"
-        f"❤️ Obrazy (love): {love_count}\n"
-        f"🔥 Obrazy (hot): {hot_count}\n"
-        f"💬 Teksty podrywu (love): {recent_love}\n"
-        f"🔥 Teksty kuszące (hot): {recent_hot}"
-    )
-    
-    await ctx.send(msg)
 
-# ─── Globalne zmienne runtime ────────────────────────
-memory = {}
-seen_images_love: list[str] = []
-seen_images_hot: list[str] = []
-recent_love_responses: list[str] = []
-recent_hot_responses: list[str] = []
+    love_images = memory.get("seen_images_love", [])
+    hot_images = memory.get("seen_images_hot", [])
 
-# ─── Konfiguracja tokena i kanałów ───────────────────
-TOKEN = "".join(os.environ.get("DISCORD_TOKEN", "").split())
-CHANNEL_ID_RAW = os.environ.get("CHANNEL_ID", "").strip()
-HEART_CHANNEL_ID_RAW = os.environ.get("HEART_CHANNEL_ID", "").strip()
-ANKIETA_CHANNEL_ID_RAW = os.environ.get("ANKIETA_CHANNEL_ID", "").strip()
+    if not love_images and not hot_images:
+        await ctx.send("🗂️ Bot jeszcze nie wykorzystał żadnych obrazów.")
+        return
 
-def parse_id(raw_id):
-    try:
-        return int(raw_id) if raw_id else None
-    except ValueError:
-        return None
-
-CHANNEL_ID = parse_id(CHANNEL_ID_RAW)
-HEART_CHANNEL_ID = parse_id(HEART_CHANNEL_ID_RAW)
-ANKIETA_CHANNEL_ID = parse_id(ANKIETA_CHANNEL_ID_RAW)
-
-if not TOKEN:
-    print("❌ Brak DISCORD_TOKEN w zmiennych środowiskowych.")
-    sys.exit(1)
-if CHANNEL_ID is None:
-    print("❌ Brak lub niepoprawny CHANNEL_ID w zmiennych środowiskowych.")
-    sys.exit(1)
+    # Tworzymy osobną paginację dla ❤️ i 🔥
+    if love_images:
+        view_love = MemoryPages(ctx, love_images, "Obrazy ❤️ (love)")
+        await view_love.send()
+    if hot_images:
+        view_hot = MemoryPages(ctx, hot_images, "Obrazy 🔥 (hot)")
+        await view_hot.send()
 
 # ─── Ładowanie tekstów ─────────────────────────────
 def load_lines(file_path: str) -> list[str]:
