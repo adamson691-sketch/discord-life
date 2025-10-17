@@ -381,41 +381,42 @@ if content == "ostatnie":
             await target_channel.send(f"📖 Brak obrazów {title_emoji} w pamięci.")
             return
 
-        page_size = 4
+        page_size = 4  # liczba obrazków na stronę
         pages = [images[i:i+page_size] for i in range(0, len(images), page_size)]
         page_index = 0
 
         async def send_page(idx):
-            embed = discord.Embed(title=f"📖 {title_emoji} Ostatnie obrazy — strona {idx+1}/{len(pages)}")
-            files = []
-            for img_name in pages[idx]:
+            embed = discord.Embed(title=f"📖 {title_emoji} Ostatnie obrazy — strona {idx+1}/{len(pages)}", color=0xFFD700)
+            for i, img_name in enumerate(pages[idx]):
                 path = os.path.join(folder, img_name)
                 if os.path.exists(path):
-                    files.append(discord.File(path, filename=img_name))
-            if files:
-                await target_channel.send(embed=embed, files=files)
-            else:
-                await target_channel.send(f"Brak plików {title_emoji} na tej stronie.")
+                    file = discord.File(path, filename=img_name)
+                    embed.set_image(url=f"attachment://{img_name}") if i == 0 else embed.add_field(name=f"Obraz {i+1}", value=img_name, inline=True)
+                    return_files.append(file)
+            msg = await target_channel.send(embed=embed, files=return_files)
 
+        return_files = []
         await send_page(page_index)
 
-        msg = await target_channel.send("◀️ poprzednia | następna ▶️")
-        await msg.add_reaction("◀️")
-        await msg.add_reaction("▶️")
+        msg_nav = await target_channel.send("◀️ poprzednia | następna ▶️")
+        await msg_nav.add_reaction("◀️")
+        await msg_nav.add_reaction("▶️")
 
         def check(reaction, user):
-            return user == message.author and str(reaction.emoji) in ["◀️", "▶️"] and reaction.message.id == msg.id
+            return user == message.author and str(reaction.emoji) in ["◀️", "▶️"] and reaction.message.id == msg_nav.id
 
         while True:
             try:
                 reaction, user = await bot.wait_for("reaction_add", timeout=120.0, check=check)
                 if str(reaction.emoji) == "▶️" and page_index < len(pages) - 1:
                     page_index += 1
+                    return_files.clear()
                     await send_page(page_index)
                 elif str(reaction.emoji) == "◀️" and page_index > 0:
                     page_index -= 1
+                    return_files.clear()
                     await send_page(page_index)
-                await msg.remove_reaction(reaction.emoji, user)
+                await msg_nav.remove_reaction(reaction.emoji, user)
             except asyncio.TimeoutError:
                 break
 
@@ -425,7 +426,6 @@ if content == "ostatnie":
 
     await send_book(love_images, "images", "❤️")
     await send_book(hot_images, "hot", "🔥")
-
 # ─── Funkcja pomocnicza do wyboru tekstu i obrazka ─────────────────────────────
 async def prepare_response(lines_list, recent_responses, memory_dict, folder, seen_list):
     if not lines_list:
