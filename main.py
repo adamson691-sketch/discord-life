@@ -14,6 +14,8 @@ from keep_alive import keep_alive
 import json
 
 
+# ─── Konfiguracja ─────────────────────────────
+TOKEN = os.environ.get("DISCORD_TOKEN")
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 HEART_CHANNEL_ID = int(os.environ.get("HEART_CHANNEL_ID"))
 ANKIETA_CHANNEL_ID = int(os.environ.get("ANKIETA_CHANNEL_ID"))
