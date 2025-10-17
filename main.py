@@ -372,35 +372,59 @@ async def on_message(message: discord.Message):
             await target_channel.send(response_text)
         return
 
-    # ─── Komenda ostatnie ─────────────────────────────
-    if content == "ostatnie":
-        target_channel = bot.get_channel(MEMORY_CHANNEL_ID) or message.channel
+# ─── Komenda ostatnie ─────────────────────────────
+if content == "ostatnie":
+    target_channel = bot.get_channel(MEMORY_CHANNEL_ID) or message.channel
 
-        # Ostatnie 20 obrazów ❤️
-        love_images = memory.get("seen_images_love", [])[-20:]
-        if love_images:
-            await target_channel.send("📖 Ostatnie ❤️ 20 obrazów:")
-            for idx, img in enumerate(love_images, start=1):
-                path = os.path.join("images", img)
+    async def send_book(images, folder, title_emoji):
+        if not images:
+            await target_channel.send(f"📖 Brak obrazów {title_emoji} w pamięci.")
+            return
+
+        page_size = 4
+        pages = [images[i:i+page_size] for i in range(0, len(images), page_size)]
+        page_index = 0
+
+        async def send_page(idx):
+            embed = discord.Embed(title=f"📖 {title_emoji} Ostatnie obrazy — strona {idx+1}/{len(pages)}")
+            files = []
+            for img_name in pages[idx]:
+                path = os.path.join(folder, img_name)
                 if os.path.exists(path):
-                    await target_channel.send(f"{idx}. {img}", file=discord.File(path))
-        else:
-            await target_channel.send("❤️ Brak obrazów w pamięci.")
+                    files.append(discord.File(path, filename=img_name))
+            if files:
+                await target_channel.send(embed=embed, files=files)
+            else:
+                await target_channel.send(f"Brak plików {title_emoji} na tej stronie.")
 
-        # Ostatnie 20 obrazów 🔥
-        hot_images = memory.get("seen_images_hot", [])[-20:]
-        if hot_images:
-            await target_channel.send("📖 Ostatnie 🔥 20 obrazów:")
-            for idx, img in enumerate(hot_images, start=1):
-                path = os.path.join("hot", img)
-                if os.path.exists(path):
-                    await target_channel.send(f"{idx}. {img}", file=discord.File(path))
-        else:
-            await target_channel.send("🔥 Brak obrazów w pamięci.")
-        return
+        await send_page(page_index)
 
-    # przepuszczenie pozostałych wiadomości do komend
-    await bot.process_commands(message)
+        msg = await target_channel.send("◀️ poprzednia | następna ▶️")
+        await msg.add_reaction("◀️")
+        await msg.add_reaction("▶️")
+
+        def check(reaction, user):
+            return user == message.author and str(reaction.emoji) in ["◀️", "▶️"] and reaction.message.id == msg.id
+
+        while True:
+            try:
+                reaction, user = await bot.wait_for("reaction_add", timeout=120.0, check=check)
+                if str(reaction.emoji) == "▶️" and page_index < len(pages) - 1:
+                    page_index += 1
+                    await send_page(page_index)
+                elif str(reaction.emoji) == "◀️" and page_index > 0:
+                    page_index -= 1
+                    await send_page(page_index)
+                await msg.remove_reaction(reaction.emoji, user)
+            except asyncio.TimeoutError:
+                break
+
+    # Wywołanie dwóch książek
+    love_images = memory.get("seen_images_love", [])[-20:]
+    hot_images = memory.get("seen_images_hot", [])[-20:]
+
+    await send_book(love_images, "images", "❤️")
+    await send_book(hot_images, "hot", "🔥")
 
 # ─── Funkcja pomocnicza do wyboru tekstu i obrazka ─────────────────────────────
 async def prepare_response(lines_list, recent_responses, memory_dict, folder, seen_list):
