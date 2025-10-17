@@ -488,12 +488,13 @@ async def on_message(message: discord.Message):
         return
 
     # ─── Reakcja ❤️ ─────────────────────────────
-    HEART_EMOJIS = [
-        "<3", "❤", "❤️", "♥️", "♥",
-        "🤍", "💙", "🩵", "💚", "💛", "💜",
-        "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖",
-    ]
+    async def on_message(message: discord.Message):
+        global memory  # <-- zawsze na samej górze funkcji
 
+    if message.author == bot.user:
+        return
+
+    content = message.content.strip().lower()
     HEART_EMOJIS = [
     "<3", "❤", "❤️", "♥️", "♥",
     "🤍", "💙", "🩵", "💚", "💛", "💜",
@@ -539,6 +540,7 @@ async def on_message(message: discord.Message):
 
     # ─── Reakcja 🔥 ─────────────────────────────
     if "🔥" in content or "gorąco" in content or "goraco" in content:
+        global memory  # <-- na samej górze
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "hot"
     
