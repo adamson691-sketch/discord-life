@@ -15,8 +15,8 @@ import json
 
 
 JSONBIN_API = "https://api.jsonbin.io/v3/b"
-JSONBIN_KEY = os.environ.get("JSONBIN_KEY")  # klucz z JSONBin.io
-BIN_ID = os.environ.get("JSONBIN_BIN_ID")    # ID binu – utworzymy go zaraz
+JSONBIN_KEY = os.environ.get("JSONBIN_KEY")
+BIN_ID = os.environ.get("JSONBIN_BIN_ID")
 
 HEADERS = {
     "X-Master-Key": JSONBIN_KEY,
@@ -29,12 +29,20 @@ async def create_bin_if_needed():
         print("⚠️ Brak JSONBIN_KEY — pamięć nie będzie działać.")
         return None
 
-    # jeśli mamy już zapisane ID binu, nie twórz nowego
     if os.environ.get("JSONBIN_BIN_ID"):
         return os.environ["JSONBIN_BIN_ID"]
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(JSONBIN_API, headers=HEADERS, json={"seen_images_love": [], "seen_images_hot": []}) as r:
+        async with session.post(
+            JSONBIN_API,
+            headers=HEADERS,
+            json={
+                "seen_images_love": [],
+                "seen_images_hot": [],
+                "recent_love_responses": [],
+                "recent_hot_responses": []
+            }
+        ) as r:
             data = await r.json()
             bin_id = data["metadata"]["id"]
             print(f"✅ Utworzono nowy BIN w JSONBin.io: {bin_id}")
@@ -46,16 +54,30 @@ async def load_memory_jsonbin():
     if not BIN_ID:
         BIN_ID = await create_bin_if_needed()
     if not BIN_ID:
-        return {"seen_images_love": [], "seen_images_hot": []}
+        return {
+            "seen_images_love": [],
+            "seen_images_hot": [],
+            "recent_love_responses": [],
+            "recent_hot_responses": []
+        }
 
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{JSONBIN_API}/{BIN_ID}/latest", headers=HEADERS) as r:
             if r.status == 200:
                 data = await r.json()
-                return data.get("record", {})
+                record = data.get("record", {})
+                # Upewniamy się, że wszystkie pola istnieją
+                for key in ["seen_images_love", "seen_images_hot", "recent_love_responses", "recent_hot_responses"]:
+                    record.setdefault(key, [])
+                return record
             else:
                 print(f"⚠️ Błąd przy pobieraniu pamięci ({r.status})")
-                return {"seen_images_love": [], "seen_images_hot": []}
+                return {
+                    "seen_images_love": [],
+                    "seen_images_hot": [],
+                    "recent_love_responses": [],
+                    "recent_hot_responses": []
+                }
 
 async def save_memory_jsonbin(memory_data):
     """Zapisuje dane do JSONBin."""
@@ -71,26 +93,6 @@ async def save_memory_jsonbin(memory_data):
             else:
                 print(f"❌ Błąd przy zapisie do JSONBin: {r.status}")
 
-MEMORY_FILE = "memory.json"
-
-def load_memory():
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except json.JSONDecodeError:
-            print("⚠️ Błąd w memory.json – resetuję dane.")
-    return  {"seen_images": [], "recent_love_responses": [], "recent_hot_responses": []}
-
-def save_memory():
-    data = {
-        "seen_images_love": seen_images_love,
-        "seen_images_hot": seen_images_hot,
-        "recent_love_responses": recent_love_responses,
-        "recent_hot_responses": recent_hot_responses,
-    }
-    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 # ─── Konfiguracja i walidacja env ──────────────────────────────────────────────
 import os
@@ -123,7 +125,7 @@ print(f"DEBUG CHANNEL_ID: '{CHANNEL_ID_RAW}'")
 # pobierz ID kanału na serca (może być inny niż główny)
 
 # ─── Pamięć ────────────────────────────────────────
-memory = load_memory()
+memory = asyncio.run(load_memory_jsonbin())
 memory["seen_images_love"] = list(dict.fromkeys(memory.get("seen_images_love", [])))
 memory["seen_images_hot"] = list(dict.fromkeys(memory.get("seen_images_hot", [])))
 memory["recent_love_responses"] = list(dict.fromkeys(memory.get("recent_love_responses", [])))
@@ -136,23 +138,6 @@ recent_hot_responses: list[str] = memory.get("recent_hot_responses", [])
 seen_images_love: list[str] = memory.get("seen_images_love", [])
 seen_images_hot: list[str] = memory.get("seen_images_hot", [])
 
-# 🔒 blokada zapisu (żeby uniknąć kolizji)
-save_lock = asyncio.Lock()
-
-# ─── Funkcja zapisu pamięci ───────────────────────
-async def save_memory():
-    async with save_lock:
-        try:
-            with open("memory.json", "w", encoding="utf-8") as f:
-                json.dump({
-                    "recent_love_responses": recent_love_responses,
-                    "recent_hot_responses": recent_hot_responses,
-                    "seen_images_love": seen_images_love,
-                    "seen_images_hot": seen_images_hot,
-                }, f, ensure_ascii=False, indent=2)
-            print("💾 Pamięć zapisana pomyślnie.")
-        except Exception as e:
-            print("❌ Błąd przy zapisie pamięci:", e)
 
 # walidacja tokena
 if not TOKEN:
@@ -716,6 +701,11 @@ async def schedule_ankiety():
 @bot.event
 async def on_ready():
     print(f"✅ Zalogowano jako {bot.user} (ID: {bot.user.id})")
+    
+global memory
+memory = await load_memory_jsonbin()
+print(f"🧠 Załadowano pamięć JSONBin: {len(memory.get('seen_images_love', []))} ❤️ | {len(memory.get('seen_images_hot', []))} 🔥")
+
 
 async def main():
     keep_alive()
