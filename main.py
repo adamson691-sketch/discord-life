@@ -494,18 +494,26 @@ async def on_message(message: discord.Message):
         "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖",
     ]
 
+    HEART_EMOJIS = [
+    "<3", "❤", "❤️", "♥️", "♥",
+    "🤍", "💙", "🩵", "💚", "💛", "💜",
+    "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖",
+]
+
     if any(heart in content for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "images"
-
+    
         # losowy tekst z pliku Podryw.txt
         if not pickup_lines_love:
             response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
         else:
             available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
             response_text = random.choice(available)
+
+            # 🧠 ZAPAMIĘTAJ TEKST w pamięci i w JSONBin
             recent_love_responses.append(response_text)
-            recent_love_responses[:] = list(dict.fromkeys(recent_love_responses))[-100:]
+            memory["recent_love_responses"] = recent_love_responses[-100:]
             await save_memory_jsonbin(memory)
 
         # losowy obrazek
@@ -514,46 +522,58 @@ async def on_message(message: discord.Message):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             available_images = [f for f in files if f not in seen_images_love] or files
             img = random.choice(available_images)
+
+            # 🧠 ZAPAMIĘTAJ OBRAZEK w pamięci i w JSONBin
             seen_images_love.append(img)
-            seen_images_love[:] = list(dict.fromkeys(seen_images_love))[-500:]
+            memory["seen_images_love"] = seen_images_love[-500:]
             await save_memory_jsonbin(memory)
+    
+    # wysyłka
+    if img:
+        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+    else:
+        await target_channel.send(response_text)
 
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send(response_text)
-
-        await bot.process_commands(message)
-        return
+    await bot.process_commands(message)
+    return
 
     # ─── Reakcja 🔥 ─────────────────────────────
     if "🔥" in content or "gorąco" in content or "goraco" in content:
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "hot"
-
+    
+        # losowy tekst z pliku kuszace.txt
         if not pickup_lines_hot:
             response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
         else:
             available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
             response_text = random.choice(available)
+    
+            # 🧠 ZAPAMIĘTAJ TEKST (żeby nie powtarzać)
             recent_hot_responses.append(response_text)
-            recent_hot_responses[:] = list(dict.fromkeys(recent_hot_responses))[-70:]
+            memory["recent_hot_responses"] = recent_hot_responses[-70:]
             await save_memory_jsonbin(memory)
 
+        # losowy obrazek
+        img = None
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            if files:
-                img_path = os.path.join(folder, random.choice(files))
-                seen_images_hot.append(os.path.basename(img_path))
-                seen_images_hot[:] = list(dict.fromkeys(seen_images_hot))[-500:]
-                await save_memory_jsonbin(memory)
-                await target_channel.send(response_text, file=discord.File(img_path))
-                await bot.process_commands(message)
-                return
+            available_images = [f for f in files if f not in seen_images_hot] or files
+            img = random.choice(available_images)
 
-                await target_channel.send(f"{response_text} (ale brak obrazków w folderze!)")
-                await bot.process_commands(message)
-                return
+            # 🧠 ZAPAMIĘTAJ OBRAZEK
+            seen_images_hot.append(img)
+            memory["seen_images_hot"] = seen_images_hot[-500:]
+            await save_memory_jsonbin(memory)
+
+            # wysyłka
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send(response_text)
+    
+        await bot.process_commands(message)
+        return
 
    # ─── Reakcje pamięci ─────────────────────────────
     if "pokażpamięć" in content or "pokaż pamięć" in content or "pokazpamiec" in content or "pokaz pamiec" in content:
