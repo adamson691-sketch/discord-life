@@ -13,6 +13,64 @@ from datetime import datetime, timedelta
 from keep_alive import keep_alive  # serwer do podtrzymania na Render
 import json
 
+
+JSONBIN_API = "https://api.jsonbin.io/v3/b"
+JSONBIN_KEY = os.environ.get("JSONBIN_KEY")  # klucz z JSONBin.io
+BIN_ID = os.environ.get("JSONBIN_BIN_ID")    # ID binu – utworzymy go zaraz
+
+HEADERS = {
+    "X-Master-Key": JSONBIN_KEY,
+    "Content-Type": "application/json"
+}
+
+async def create_bin_if_needed():
+    """Tworzy nowy bin, jeśli nie istnieje."""
+    if not JSONBIN_KEY:
+        print("⚠️ Brak JSONBIN_KEY — pamięć nie będzie działać.")
+        return None
+
+    # jeśli mamy już zapisane ID binu, nie twórz nowego
+    if os.environ.get("JSONBIN_BIN_ID"):
+        return os.environ["JSONBIN_BIN_ID"]
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(JSONBIN_API, headers=HEADERS, json={"seen_images_love": [], "seen_images_hot": []}) as r:
+            data = await r.json()
+            bin_id = data["metadata"]["id"]
+            print(f"✅ Utworzono nowy BIN w JSONBin.io: {bin_id}")
+            return bin_id
+
+async def load_memory_jsonbin():
+    """Pobiera dane z JSONBin."""
+    global BIN_ID
+    if not BIN_ID:
+        BIN_ID = await create_bin_if_needed()
+    if not BIN_ID:
+        return {"seen_images_love": [], "seen_images_hot": []}
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{JSONBIN_API}/{BIN_ID}/latest", headers=HEADERS) as r:
+            if r.status == 200:
+                data = await r.json()
+                return data.get("record", {})
+            else:
+                print(f"⚠️ Błąd przy pobieraniu pamięci ({r.status})")
+                return {"seen_images_love": [], "seen_images_hot": []}
+
+async def save_memory_jsonbin(memory_data):
+    """Zapisuje dane do JSONBin."""
+    global BIN_ID
+    if not BIN_ID:
+        BIN_ID = await create_bin_if_needed()
+    if not BIN_ID:
+        return
+    async with aiohttp.ClientSession() as session:
+        async with session.put(f"{JSONBIN_API}/{BIN_ID}", headers=HEADERS, json=memory_data) as r:
+            if r.status == 200:
+                print("💾 Pamięć zapisana w JSONBin.io")
+            else:
+                print(f"❌ Błąd przy zapisie do JSONBin: {r.status}")
+
 MEMORY_FILE = "memory.json"
 
 def load_memory():
@@ -463,7 +521,7 @@ async def on_message(message: discord.Message):
             response_text = random.choice(available)
             recent_love_responses.append(response_text)
             recent_love_responses[:] = list(dict.fromkeys(recent_love_responses))[-100:]
-            save_memory()
+            await save_memory_jsonbin(memory)
 
         # losowy obrazek
         img = None
@@ -473,7 +531,7 @@ async def on_message(message: discord.Message):
             img = random.choice(available_images)
             seen_images_love.append(img)
             seen_images_love[:] = list(dict.fromkeys(seen_images_love))[-500:]
-            save_memory()
+            await save_memory_jsonbin(memory)
 
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
@@ -495,7 +553,7 @@ async def on_message(message: discord.Message):
             response_text = random.choice(available)
             recent_hot_responses.append(response_text)
             recent_hot_responses[:] = list(dict.fromkeys(recent_hot_responses))[-70:]
-            save_memory()
+            await save_memory_jsonbin(memory)
 
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
@@ -503,7 +561,7 @@ async def on_message(message: discord.Message):
                 img_path = os.path.join(folder, random.choice(files))
                 seen_images_hot.append(os.path.basename(img_path))
                 seen_images_hot[:] = list(dict.fromkeys(seen_images_hot))[-500:]
-                save_memory()
+                await save_memory_jsonbin(memory)
                 await target_channel.send(response_text, file=discord.File(img_path))
                 await bot.process_commands(message)
                 return
@@ -559,7 +617,7 @@ async def on_message(message: discord.Message):
             recent_love_responses.clear()
             recent_hot_responses.clear()
 
-            await save_memory()
+            await save_memory_jsonbin(memory)
             await message.channel.send("🧹 Pamięć została **zresetowana**.")
         else:
             await message.channel.send("❌ Reset pamięci **anulowany**.")
@@ -588,7 +646,7 @@ async def on_message(message: discord.Message):
     # ─── NAJWAŻNIEJSZE ─────────────────────────────
     # Zawsze przepuszczaj pozostałe wiadomości do komend
     await bot.process_commands(message)
-    save_memory()
+    await save_memory_jsonbin(memory)
     
 
 # ─── Harmonogram ──────────────────────────────────────────────────────────────
