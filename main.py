@@ -332,7 +332,7 @@ async def on_message(message: discord.Message):
 
     content = message.content.strip().lower()
 
-    # ─── Komenda memy ─────────────────────────────
+    # ─── Komenda MEMY ─────────────────────────────
     if content == "memy":
         memes = await get_random_memes(2)
         if memes:
@@ -342,93 +342,143 @@ async def on_message(message: discord.Message):
             await message.channel.send("⚠️ Nie udało się znaleźć memów!")
         return
 
-    # ─── Komenda ankieta ─────────────────────────────
+    # ─── Komenda ANKIETA ─────────────────────────────
     if content == "ankieta":
         await send_ankieta()
         await message.add_reaction("✅")
         return
 
-    # ─── Reakcja ❤️ / 🔥 ─────────────────────────────
-    HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥","🤍","💙","🩵","💚","💛","💜","🖤","🤎","🧡","💗","🩶","🩷","💖"]
+    # ─── Reakcja ❤️ ─────────────────────────────
+    HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥", "🤍", "💙", "🩵", "💚", "💛", "💜", "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖"]
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
 
     if any(heart in content for heart in HEART_EMOJIS):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
         folder = "images"
-        response_text, img = await prepare_response(pickup_lines_love, recent_love_responses, memory, folder, seen_images_love)
+
+        # Tekst
+        if not pickup_lines_love:
+            response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
+        else:
+            available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
+            response_text = random.choice(available)
+            recent_love_responses.append(response_text)
+            memory["recent_love_responses"] = recent_love_responses[-100:]
+            await save_memory_jsonbin(memory)
+
+        # Obrazek
+        img = None
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            available_images = [f for f in files if f not in seen_images_love] or files
+            img = random.choice(available_images)
+            seen_images_love.append(img)
+            memory["seen_images_love"] = seen_images_love[-500:]
+            await save_memory_jsonbin(memory)
+
+        # Wysyłanie
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
         return
 
+    # ─── Reakcja 🔥 ─────────────────────────────
     elif any(hot in content for hot in HOT_EMOJIS):
-        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
+        target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
         folder = "hot"
-        response_text, img = await prepare_response(pickup_lines_hot, recent_hot_responses, memory, folder, seen_images_hot)
+
+        if not pickup_lines_hot:
+            response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
+        else:
+            available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
+            response_text = random.choice(available)
+            recent_hot_responses.append(response_text)
+            memory["recent_hot_responses"] = recent_hot_responses[-70:]
+            await save_memory_jsonbin(memory)
+
+        img = None
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            available_images = [f for f in files if f not in seen_images_hot] or files
+            img = random.choice(available_images)
+            seen_images_hot.append(img)
+            memory["seen_images_hot"] = seen_images_hot[-500:]
+            await save_memory_jsonbin(memory)
+
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
         return
 
-# ─── Komenda ostatnie ─────────────────────────────
-if content == "ostatnie":
-    target_channel = bot.get_channel(MEMORY_CHANNEL_ID) or message.channel
+    # ─── Komenda OSTATNIE ─────────────────────────────
+    if content == "ostatnie":
+        target_channel = bot.get_channel(MEMORY_CHANNEL_ID) or message.channel
 
-    async def send_book(images, folder, title_emoji):
-        if not images:
-            await target_channel.send(f"📖 Brak obrazów {title_emoji} w pamięci.")
-            return
+        async def send_book(images, folder, title_emoji):
+            if not images:
+                await target_channel.send(f"📖 Brak obrazów {title_emoji} w pamięci.")
+                return
 
-        page_size = 4  # liczba obrazków na stronę
-        pages = [images[i:i+page_size] for i in range(0, len(images), page_size)]
-        page_index = 0
+            page_size = 4
+            pages = [images[i:i + page_size] for i in range(0, len(images), page_size)]
+            page_index = 0
 
-        async def send_page(idx):
-            embed = discord.Embed(title=f"📖 {title_emoji} Ostatnie obrazy — strona {idx+1}/{len(pages)}", color=0xFFD700)
-            for i, img_name in enumerate(pages[idx]):
-                path = os.path.join(folder, img_name)
-                if os.path.exists(path):
-                    file = discord.File(path, filename=img_name)
-                    embed.set_image(url=f"attachment://{img_name}") if i == 0 else embed.add_field(name=f"Obraz {i+1}", value=img_name, inline=True)
-                    return_files.append(file)
-            msg = await target_channel.send(embed=embed, files=return_files)
+            async def send_page(idx):
+                embed = discord.Embed(
+                    title=f"📖 {title_emoji} Ostatnie obrazy — strona {idx + 1}/{len(pages)}",
+                    color=0xFFD700
+                )
+                files = []
+                for i, img_name in enumerate(pages[idx]):
+                    path = os.path.join(folder, img_name)
+                    if os.path.exists(path):
+                        file = discord.File(path, filename=img_name)
+                        if i == 0:
+                            embed.set_image(url=f"attachment://{img_name}")
+                        else:
+                            embed.add_field(name=f"Obraz {i + 1}", value=img_name, inline=True)
+                        files.append(file)
+                return await target_channel.send(embed=embed, files=files)
 
-        return_files = []
-        await send_page(page_index)
+            msg = await send_page(page_index)
+            msg_nav = await target_channel.send("◀️ poprzednia | następna ▶️")
+            await msg_nav.add_reaction("◀️")
+            await msg_nav.add_reaction("▶️")
 
-        msg_nav = await target_channel.send("◀️ poprzednia | następna ▶️")
-        await msg_nav.add_reaction("◀️")
-        await msg_nav.add_reaction("▶️")
+            def check(reaction, user):
+                return (
+                    user == message.author
+                    and str(reaction.emoji) in ["◀️", "▶️"]
+                    and reaction.message.id == msg_nav.id
+                )
 
-        def check(reaction, user):
-            return user == message.author and str(reaction.emoji) in ["◀️", "▶️"] and reaction.message.id == msg_nav.id
+            while True:
+                try:
+                    reaction, user = await bot.wait_for("reaction_add", timeout=120.0, check=check)
+                    if str(reaction.emoji) == "▶️" and page_index < len(pages) - 1:
+                        page_index += 1
+                        await msg.delete()
+                        msg = await send_page(page_index)
+                    elif str(reaction.emoji) == "◀️" and page_index > 0:
+                        page_index -= 1
+                        await msg.delete()
+                        msg = await send_page(page_index)
+                    await msg_nav.remove_reaction(reaction.emoji, user)
+                except asyncio.TimeoutError:
+                    break
 
-        while True:
-            try:
-                reaction, user = await bot.wait_for("reaction_add", timeout=120.0, check=check)
-                if str(reaction.emoji) == "▶️" and page_index < len(pages) - 1:
-                    page_index += 1
-                    return_files.clear()
-                    await send_page(page_index)
-                elif str(reaction.emoji) == "◀️" and page_index > 0:
-                    page_index -= 1
-                    return_files.clear()
-                    await send_page(page_index)
-                await msg_nav.remove_reaction(reaction.emoji, user)
-            except asyncio.TimeoutError:
-                break
+        # wysyłamy dwie “książki”
+        love_images = memory.get("seen_images_love", [])[-20:]
+        hot_images = memory.get("seen_images_hot", [])[-20:]
 
-    # Wywołanie dwóch książek
-    love_images = memory.get("seen_images_love", [])[-20:]
-    hot_images = memory.get("seen_images_hot", [])[-20:]
+        await send_book(love_images, "images", "❤️")
+        await send_book(hot_images, "hot", "🔥")
+        return
 
-    await send_book(love_images, "images", "❤️")
-    await send_book(hot_images, "hot", "🔥")
-    return
-  
-  await bot.process_commands(message)
+    # konieczne, żeby bot widział inne komendy (np. slashy)
+    await bot.process_commands(message)
 # ─── Funkcja pomocnicza do wyboru tekstu i obrazka ─────────────────────────────
 async def prepare_response(lines_list, recent_responses, memory_dict, folder, seen_list):
     if not lines_list:
