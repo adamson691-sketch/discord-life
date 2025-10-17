@@ -365,6 +365,7 @@ async def on_message(message: discord.Message):
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
+
             return
     # ─── Reakcja 🔥 ─────────────────────────────
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
@@ -391,10 +392,11 @@ async def on_message(message: discord.Message):
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
             await target_channel.send(response_text)
+
             return
     # ─── Przepuszczanie pozostałych wiadomości do komend
     await bot.process_commands(message)
-    
+
 # ─── Start ─────────────────────────────
 async def main():
     global memory, seen_images_love, seen_images_hot, recent_love_responses, recent_hot_responses
