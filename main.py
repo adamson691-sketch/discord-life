@@ -426,6 +426,9 @@ if content == "ostatnie":
 
     await send_book(love_images, "images", "❤️")
     await send_book(hot_images, "hot", "🔥")
+    return
+  
+  await bot.process_commands(message)
 # ─── Funkcja pomocnicza do wyboru tekstu i obrazka ─────────────────────────────
 async def prepare_response(lines_list, recent_responses, memory_dict, folder, seen_list):
     if not lines_list:
