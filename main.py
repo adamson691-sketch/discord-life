@@ -93,6 +93,23 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+@bot.command(name="pamiec")
+async def show_memory(ctx):
+    global memory
+    love_count = len(memory.get("seen_images_love", []))
+    hot_count = len(memory.get("seen_images_hot", []))
+    recent_love = len(memory.get("recent_love_responses", []))
+    recent_hot = len(memory.get("recent_hot_responses", []))
+    
+    msg = (
+        f"📊 **Stan pamięci bota:**\n"
+        f"❤️ Obrazy (love): {love_count}\n"
+        f"🔥 Obrazy (hot): {hot_count}\n"
+        f"💬 Teksty podrywu (love): {recent_love}\n"
+        f"🔥 Teksty kuszące (hot): {recent_hot}"
+    )
+    
+    await ctx.send(msg)
 
 # ─── Globalne zmienne runtime ────────────────────────
 memory = {}
