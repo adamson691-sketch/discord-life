@@ -19,6 +19,7 @@ TOKEN = os.environ.get("DISCORD_TOKEN")
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 HEART_CHANNEL_ID = int(os.environ.get("HEART_CHANNEL_ID"))
 ANKIETA_CHANNEL_ID = int(os.environ.get("ANKIETA_CHANNEL_ID"))
+MEMORY_CHANNEL_ID = int(os.environ.get("MEMORY_CHANNEL_ID"))
                          
 # ─── JSONBin Konfiguracja ─────────────────────────────
 JSONBIN_API = "https://api.jsonbin.io/v3/b"
@@ -413,6 +414,34 @@ async def on_message(message: discord.Message):
 
     # przepuszczenie pozostałych wiadomości do komend
     await bot.process_commands(message)
+  # ─── Komenda ostatnie ─────────────────────────────
+        if content == "ostatnie":
+          MEMORY_CHANNEL_ID = int(os.environ.get("MEMORY_CHANNEL_ID"))
+          target_channel = bot.get_channel(MEMORY_CHANNEL_ID) or message.channel
+  
+     # Ostatnie 20 obrazów ❤️
+        love_images = memory.get("seen_images_love", [])[-20:]
+        if love_images:
+          await target_channel.send("📖 Ostatnie ❤️ 20 obrazów:")
+          for idx, img in enumerate(love_images, start=1):
+              path = os.path.join("images", img)
+              if os.path.exists(path):
+                  await target_channel.send(f"{idx}. {img}", file=discord.File(path))
+          else:
+          await target_channel.send("❤️ Brak obrazów w pamięci.")
+
+          # Ostatnie 20 obrazów 🔥
+          hot_images = memory.get("seen_images_hot", [])[-20:]
+          if hot_images:
+            await target_channel.send("📖 Ostatnie 🔥 20 obrazów:")
+            for idx, img in enumerate(hot_images, start=1):
+              path = os.path.join("hot", img)
+              if os.path.exists(path):
+                  await target_channel.send(f"{idx}. {img}", file=discord.File(path))
+      else:
+          await target_channel.send("🔥 Brak obrazów w pamięci.")
+
+      return
 
 
 # ─── Start ─────────────────────────────
