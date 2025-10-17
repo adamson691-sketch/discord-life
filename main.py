@@ -414,8 +414,36 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-    await bot.process_commands(message)
+        # ─── Reakcja 🔥 ─────────────────────────────
+    HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
+    if any(hot in content for hot in HOT_EMOJIS):
+        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
+        folder = "hot"
+        if not pickup_lines_hot:
+            response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
+        else:
+            available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
+            response_text = random.choice(available)
+            recent_hot_responses.append(response_text)
+            memory["recent_hot_responses"] = recent_hot_responses[-70:]
+            await save_memory_jsonbin(memory)
+        img = None
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png",".jpg",".jpeg",".gif"))]
+            available_images = [f for f in files if f not in seen_images_hot] or files
+            img = random.choice(available_images)
+            seen_images_hot.append(img)
+            memory["seen_images_hot"] = seen_images_hot[-500:]
+            await save_memory_jsonbin(memory)
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send(response_text)
+        await bot.process_commands(message)
+        return
 
+    # ─── Przepuszczanie pozostałych wiadomości do komend
+    await bot.process_commands(message)
 # ─── Start ─────────────────────────────
 async def main():
     global memory, seen_images_love, seen_images_hot, recent_love_responses, recent_hot_responses
