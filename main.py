@@ -13,6 +13,12 @@ from datetime import datetime, timedelta
 from keep_alive import keep_alive
 import json
 
+
+TOKEN = os.environ.get("DISCORD_TOKEN")
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
+HEART_CHANNEL_ID = int(os.environ.get("HEART_CHANNEL_ID"))
+ANKIETA_CHANNEL_ID = int(os.environ.get("ANKIETA_CHANNEL_ID")
+                         
 # ─── JSONBin Konfiguracja ─────────────────────────────
 JSONBIN_API = "https://api.jsonbin.io/v3/b"
 JSONBIN_KEY = os.environ.get("JSONBIN_KEY")
