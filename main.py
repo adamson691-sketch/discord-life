@@ -179,6 +179,71 @@ async def get_meme_from_demotywatory():
         imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
         imgs = [i for i in imgs if i and "demotywatory.pl" in i]
         return random.choice(imgs) if imgs else None
+async def get_meme_from_strefabeki():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://strefabeki.pl/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
+        imgs = [i for i in imgs if i and "strefabeki.pl" in i]
+        return random.choice(imgs) if imgs else None
+
+
+async def get_meme_from_chamsko():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://chamsko.pl/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
+        imgs = [i for i in imgs if i and "chamsko.pl" in i]
+        return random.choice(imgs) if imgs else None
+
+
+async def get_meme_from_memland():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://memland.net/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
+        imgs = [i for i in imgs if i and ("cdn.memland.net" in i or "memland.net" in i)]
+        return random.choice(imgs) if imgs else None
+
+
+async def get_meme_from_memsekcja():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://memsekcja.pl/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
+        imgs = [i for i in imgs if i and "memsekcja.pl" in i]
+        return random.choice(imgs) if imgs else None
+
+
+async def get_meme_from_paczaizm():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://paczaizm.pl/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
+        imgs = [i for i in imgs if i and "paczaizm.pl" in i]
+        return random.choice(imgs) if imgs else None
+
+
+async def get_meme_from_memowo():
+    async with aiohttp.ClientSession(headers=headers) as s:
+        html = await fetch(s, "https://memowo.pl/")
+        if not html:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        imgs = [img.get("src") or img.get("data-src") for img in soup.find_all("img")]
+        imgs = [i for i in imgs if i and "memowo.pl" in i]
+        return random.choice(imgs) if imgs else None
+
 
 # Dodaj wszystkie pozostałe scrapery jak wcześniej...
 MEME_FUNCS = [
@@ -187,10 +252,16 @@ MEME_FUNCS = [
     get_meme_from_memypl,
     get_meme_from_9gag,
     get_meme_from_demotywatory,
-    # get_meme_from_strefabeki, get_meme_from_chamsko, etc...
+    get_meme_from_demotywatory,
+    get_meme_from_strefabeki,
+    get_meme_from_chamsko,
+    get_meme_from_memland,
+    get_meme_from_memsekcja,
+    get_meme_from_paczaizm,
+    get_meme_from_memowo,    
 ]
 
-async def get_random_memes(count: int = 2):
+async def get_random_memes(count: int = 3):
     memes: list[str] = []
     funcs = MEME_FUNCS.copy()
     random.shuffle(funcs)
