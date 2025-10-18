@@ -252,7 +252,6 @@ MEME_FUNCS = [
     get_meme_from_memypl,
     get_meme_from_9gag,
     get_meme_from_demotywatory,
-    get_meme_from_demotywatory,
     get_meme_from_strefabeki,
     get_meme_from_chamsko,
     get_meme_from_memland,
