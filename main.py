@@ -479,7 +479,7 @@ async def send_weekly_ranking():
     memory["hot_stats"] = {}
     await save_memory_jsonbin(memory)
     print("♻️ Cotygodniowy ranking wysłany, statystyki zresetowane.")
-    return
+    
 
     # ─── Emoji ─────────────────────────────
     HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥", "🤍", "💙", "🩵", "💚", "💛", "💜", "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖"]
