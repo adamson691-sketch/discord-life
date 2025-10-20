@@ -395,31 +395,6 @@ async def schedule_ankiety():
         await asyncio.sleep(wait_seconds)
         await send_ankieta()
 
-@bot.event
-async def on_message(message: discord.Message):
-    global memory, recent_love_responses, recent_hot_responses, seen_images_love, seen_images_hot
-
-    if message.author == bot.user:
-        return
-
-    content = message.content.strip().lower()
-
-    # ─── Komenda MEMY ─────────────────────────────
-    if content == "memy":
-        memes = await get_random_memes(2)
-        if memes:
-            for m in memes:
-                await message.channel.send(m)
-        else:
-            await message.channel.send("⚠️ Nie udało się znaleźć memów!")
-        return
-
-    # ─── Komenda ANKIETA ─────────────────────────────
-    if content == "ankieta":
-        await send_ankieta()
-        await message.add_reaction("✅")
-        return
-
   # ─── Cotygodniowy ranking ─────────────────────────────
 @tasks.loop(time=time(hour=19, minute=0))
 async def send_weekly_ranking():
@@ -480,8 +455,32 @@ async def send_weekly_ranking():
     await save_memory_jsonbin(memory)
     print("♻️ Cotygodniowy ranking wysłany, statystyki zresetowane.")
     
+@bot.event
+async def on_message(message: discord.Message):
+    global memory, recent_love_responses, recent_hot_responses, seen_images_love, seen_images_hot
 
-    # ─── Emoji ─────────────────────────────
+    if message.author == bot.user:
+        return
+
+    content = message.content.strip().lower()
+
+    # ─── Komenda MEMY ─────────────────────────────
+    if content == "memy":
+        memes = await get_random_memes(2)
+        if memes:
+            for m in memes:
+                await message.channel.send(m)
+        else:
+            await message.channel.send("⚠️ Nie udało się znaleźć memów!")
+        return
+
+    # ─── Komenda ANKIETA ─────────────────────────────
+    if content == "ankieta":
+        await send_ankieta()
+        await message.add_reaction("✅")
+        return
+
+   # ─── Emoji ─────────────────────────────
     HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥", "🤍", "💙", "🩵", "💚", "💛", "💜", "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖"]
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
 
