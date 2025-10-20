@@ -1,33 +1,28 @@
 # main.py
 import os
-import sys
-import discord
 import asyncio
-from bs4 import BeautifulSoup
-import aiohttp
 import random
 import glob
+from datetime import datetime, timedelta, time
 import pytz
-from discord.ext import commands
-from datetime import datetime, timedelta
+import aiohttp
+from bs4 import BeautifulSoup
+import discord
+from discord.ext import commands, tasks
 from keep_alive import keep_alive
-import json
-
 
 # ─── Konfiguracja ─────────────────────────────
 TOKEN = os.environ.get("DISCORD_TOKEN")
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 HEART_CHANNEL_ID = int(os.environ.get("HEART_CHANNEL_ID"))
+HOT_CHANNEL_ID = int(os.environ.get("HOT_CHANNEL_ID"))
 ANKIETA_CHANNEL_ID = int(os.environ.get("ANKIETA_CHANNEL_ID"))
 MEMORY_CHANNEL_ID = int(os.environ.get("MEMORY_CHANNEL_ID"))
-HOT_CHANNEL_ID = int(os.environ.get("HOT_CHANNEL_ID"))
 
-                         
 # ─── JSONBin Konfiguracja ─────────────────────────────
 JSONBIN_API = "https://api.jsonbin.io/v3/b"
 JSONBIN_KEY = os.environ.get("JSONBIN_KEY")
 BIN_ID = os.environ.get("JSONBIN_BIN_ID")
-
 HEADERS = {
     "X-Master-Key": JSONBIN_KEY,
     "Content-Type": "application/json"
@@ -48,7 +43,10 @@ async def create_bin_if_needed():
                 "seen_images_love": [],
                 "seen_images_hot": [],
                 "recent_love_responses": [],
-                "recent_hot_responses": []
+                "recent_hot_responses": [],
+                "heart_stats": {},
+                "hot_stats": {},
+                "last_heart_channel_id": None
             }
         ) as r:
             data = await r.json()
@@ -66,15 +64,18 @@ async def load_memory_jsonbin():
             "seen_images_love": [],
             "seen_images_hot": [],
             "recent_love_responses": [],
-            "recent_hot_responses": []
+            "recent_hot_responses": [],
+            "heart_stats": {},
+            "hot_stats": {},
+            "last_heart_channel_id": None
         }
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{JSONBIN_API}/{BIN_ID}/latest", headers=HEADERS) as r:
             if r.status == 200:
                 data = await r.json()
                 record = data.get("record", {})
-                for key in ["seen_images_love", "seen_images_hot", "recent_love_responses", "recent_hot_responses"]:
-                    record.setdefault(key, [])
+                for key in ["seen_images_love", "seen_images_hot", "recent_love_responses", "recent_hot_responses", "heart_stats", "hot_stats", "last_heart_channel_id"]:
+                    record.setdefault(key, [] if 'stats' not in key else {})
                 return record
             else:
                 print(f"⚠️ Błąd przy pobieraniu pamięci ({r.status})")
@@ -82,7 +83,10 @@ async def load_memory_jsonbin():
                     "seen_images_love": [],
                     "seen_images_hot": [],
                     "recent_love_responses": [],
-                    "recent_hot_responses": []
+                    "recent_hot_responses": [],
+                    "heart_stats": {},
+                    "hot_stats": {},
+                    "last_heart_channel_id": None
                 }
 
 async def save_memory_jsonbin(memory_data):
@@ -115,10 +119,7 @@ def load_lines(file_path: str) -> list[str]:
 pickup_lines_love = load_lines("Podryw.txt")
 pickup_lines_hot = load_lines("kuszace.txt")
 
-meme_comments = [
-    "XD","🔥🔥🔥","idealny na dziś","no i sztos","😂😂😂","aż się popłakałem",
-    "ten mem to złoto","classic","to chyba o mnie","💀💀💀"
-]
+meme_comments = ["XD","🔥🔥🔥","idealny na dziś","no i sztos","😂😂😂","aż się popłakałem","ten mem to złoto","classic","to chyba o mnie","💀💀💀"]
 def get_random_comment():
     return random.choice(meme_comments) if random.random() < 0.4 else ""
 
@@ -245,7 +246,7 @@ async def get_meme_from_memowo():
         return random.choice(imgs) if imgs else None
 
 
-# Dodaj wszystkie pozostałe scrapery jak wcześniej...
+#memyyyy strony
 MEME_FUNCS = [
     get_meme_from_jeja,
     get_meme_from_besty,
@@ -418,6 +419,66 @@ async def on_message(message: discord.Message):
         await send_ankieta()
         await message.add_reaction("✅")
         return
+
+  # ─── Cotygodniowy ranking ─────────────────────────────
+@tasks.loop(time=time(hour=19, minute=0))
+async def send_weekly_ranking():
+    memory = await load_memory_jsonbin()
+    last_heart_channel_id = memory.get("last_heart_channel_id") or HEART_CHANNEL_ID
+    channel = bot.get_channel(int(last_heart_channel_id))
+    if not channel:
+        print("❌ Nie znaleziono kanału do rankingu")
+        return
+
+    heart_stats = memory.get("heart_stats", {})
+    hot_stats = memory.get("hot_stats", {})
+
+    top_hearts = sorted(heart_stats.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_hots = sorted(hot_stats.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    async def format_rank(top_list, emoji):
+        if not top_list:
+            return f"{emoji} Brak danych"
+        lines = []
+        for i, (uid, count) in enumerate(top_list, start=1):
+            try:
+                user = await bot.fetch_user(int(uid))
+                lines.append(f"{i}. {user.mention} — {count} razy")
+            except:
+                lines.append(f"{i}. [Użytkownik usunięty] — {count} razy")
+        return f"{emoji} Top {len(top_list)}:\n" + "\n".join(lines)
+
+    heart_text = await format_rank(top_hearts, "❤️")
+    hot_text = await format_rank(top_hots, "🔥")
+
+    heart_winner = None
+    hot_winner = None
+    if top_hearts:
+        try: heart_winner = await bot.fetch_user(int(top_hearts[0][0]))
+        except: pass
+    if top_hots:
+        try: hot_winner = await bot.fetch_user(int(top_hots[0][0]))
+        except: pass
+
+    winner_text = ""
+    if heart_winner:
+        winner_text += f"\n💘 **Największym romantykiem tygodnia jest {heart_winner.mention}!** 💞\n"
+    if hot_winner:
+        winner_text += f"\n😈 **Hmmm największym napaleńcem tego tygodnia jest {hot_winner.mention}!** 🔥\n"
+
+    embed = discord.Embed(
+        title="🏆 COTYGODNIOWY RANKING REAKCJI",
+        description=f"{heart_text}\n\n{hot_text}\n\n{winner_text}",
+        color=0xFFD700
+    )
+    embed.set_footer(text="Automatyczny raport z niedzieli 19:00")
+    await channel.send(embed=embed)
+
+    # Reset
+    memory["heart_stats"] = {}
+    memory["hot_stats"] = {}
+    await save_memory_jsonbin(memory)
+    print("♻️ Cotygodniowy ranking wysłany, statystyki zresetowane.")
 
     # ─── Emoji ─────────────────────────────
     HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥", "🤍", "💙", "🩵", "💚", "💛", "💜", "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖"]
