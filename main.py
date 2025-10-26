@@ -498,9 +498,10 @@ async def on_message(message):
         else:
             await target_channel.send(response_text)
         return
-    # ─── Reakcja 🧛 i 🎃 oraz 👻 ─────────────────────────────
-    HALLOWEEN_EMOJIS = ["🧛", "🎃","👻"]
+# ─── Reakcja 🎃👻🧛 ─────────────────────────────
+    HALLOWEEN_EMOJIS = ["🧛", "🎃", "👻"]
     if any(h in content for h in HALLOWEEN_EMOJIS):
+        # Kanał i folder
         target_channel = bot.get_channel(HALLOWEEN_ID) or message.channel
         folder = "hallophoto"
         text_file = "halloteksty.txt"
