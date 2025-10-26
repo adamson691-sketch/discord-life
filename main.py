@@ -520,10 +520,9 @@ async def on_message(message):
             available_texts = [t for t in hallo_texts if t not in recent_hallo_texts] or hallo_texts
             response_text = random.choice(available_texts)
             recent_hallo_texts.append(response_text)
-            # Ograniczamy do ostatnich 100
             memory["recent_hallo_texts"] = recent_hallo_texts[-100:]
             await save_memory_jsonbin(memory)
-
+    
         # Wybór obrazka lub GIF-a
         img = None
         if os.path.exists(folder):
