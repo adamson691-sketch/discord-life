@@ -331,6 +331,7 @@ async def schedule_ankiety():
     await bot.wait_until_ready()
 
     target_hour = 15
+    target_minute = 0
 
     while not bot.is_closed():
         now = datetime.now(tz)
