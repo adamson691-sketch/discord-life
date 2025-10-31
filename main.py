@@ -20,6 +20,7 @@ HOT_CHANNEL_ID = int(os.environ.get("HOT_CHANNEL_ID"))
 ANKIETA_CHANNEL_ID = int(os.environ.get("ANKIETA_CHANNEL_ID"))
 MEMORY_CHANNEL_ID = int(os.environ.get("MEMORY_CHANNEL_ID"))
 HALLOWEEN_ID = int(os.environ.get("HALLOWEEN_ID"))
+MEMY_CHANNEL_ID = int(os.environ.get("MEMY_CHANNEL_ID"))
 
 # ─── JSONBin Konfiguracja ─────────────────────────────
 JSONBIN_API = "https://api.jsonbin.io/v3/b"
@@ -134,9 +135,9 @@ def get_random_comment():
     return random.choice(meme_comments) if random.random() < 0.4 else ""
 # ─── Automatyczne wysyłanie memów ─────────────────────────────
 async def send_memes():
-    channel = bot.get_channel(MEMORY_CHANNEL_ID)
+    channel = bot.get_channel(MEMY_CHANNEL_ID)
     if not channel:
-        print("❌ Nie znaleziono kanału memów (MEMORY_CHANNEL_ID)")
+        print("❌ Nie znaleziono kanału memów (MEMY_CHANNEL_ID)")
         return
 
     memes = await get_random_memes(3)
@@ -146,7 +147,8 @@ async def send_memes():
 
     for meme_url in memes:
         comment = get_random_comment()
-        await channel.send(comment)
+        if comment:  # wysyłamy komentarz tylko jeśli istnieje
+            await channel.send(comment)
         await channel.send(meme_url)
 
     print(f"✅ Wysłano {len(memes)} memy automatycznie.")
@@ -310,20 +312,25 @@ async def get_random_memes(count: int = 3):
 async def schedule_memes():
     tz = pytz.timezone("Europe/Warsaw")
     await bot.wait_until_ready()
+
+    targets = [(11, 0), (21, 37)]
+
     while not bot.is_closed():
         now = datetime.now(tz)
-        targets = [(11, 0), (21,37)]
-        next_time = None
-        for hour, minute in targets:
+        next_target = None
+        for hour, minute in sorted(targets):
             t = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
             if t > now:
-                next_time = t
+                next_target = t
                 break
-        if not next_time:
-            next_time = tz.localize(datetime(now.year, now.month, now.day, 11, 0)) + timedelta(days=1)
-        wait_seconds = max(1, int((next_time - now).total_seconds()))
-        print(f"⏳ Czekam {wait_seconds/3600:.2f}h do wysyłki")
+        if not next_target:
+            # jeśli wszystkie godziny już minęły, ustaw na pierwszy target jutro
+            next_target = datetime(now.year, now.month, now.day, targets[0][0], targets[0][1], tzinfo=tz) + timedelta(days=1)
+
+        wait_seconds = (next_target - now).total_seconds()
+        print(f"⏳ Czekam {wait_seconds/60:.1f} min do wysyłki memów")
         await asyncio.sleep(wait_seconds)
+        print(f"🖼️ Wysyłam mema ({next_target.hour:02d}:{next_target.minute:02d})")
         await send_memes()
 
 async def schedule_ankiety():
@@ -332,43 +339,36 @@ async def schedule_ankiety():
 
     target_hour = 15
     target_minute = 0
+    last_sent = None
 
     while not bot.is_closed():
         now = datetime.now(tz)
-        next_time = tz.localize(datetime(now.year, now.month, now.day, target_hour, target_minute))
+        current_time = (now.day, now.hour, now.minute)
 
-        # jeśli dzisiejsza godzina już minęła → zaplanuj na jutro
-        if next_time <= now:
-            next_time += timedelta(days=1)
-
-        wait_seconds = (next_time - now).total_seconds()
-        print(f"⏳ Czekam {wait_seconds/3600:.2f}h do następnej ankiety ({next_time.strftime('%H:%M')})")
-
-        await asyncio.sleep(wait_seconds)
-        asyncio.create_task(send_ankieta())
+        if now.hour == target_hour and now.minute == target_minute:
+            if last_sent != current_time:
+                print("🗳️ Wysyłam ankietę!")
+                await send_ankieta()
+                last_sent = current_time
+        await asyncio.sleep(30)
 
 
 async def schedule_weekly_ranking():
     tz = pytz.timezone("Europe/Warsaw")
     await bot.wait_until_ready()
 
+    last_sent = None
+
     while not bot.is_closed():
         now = datetime.now(tz)
+        current_time = (now.isocalendar().week, now.weekday(), now.hour, now.minute)
 
-        # wyznacz najbliższą niedzielę 16:00
-        days_ahead = (6 - now.weekday()) % 7  # niedziela = 6
-        next_sunday = now + timedelta(days=days_ahead)
-        target_time = next_sunday.replace(hour=16, minute=0, second=0, microsecond=0)
-
-        # jeśli dzisiaj już po 16:00, zaplanuj na kolejną niedzielę
-        if target_time <= now:
-            target_time += timedelta(days=7)
-
-        wait_seconds = (target_time - now).total_seconds()
-        print(f"⏳ Czekam {(wait_seconds/3600):.2f}h do rankingu tygodniowego ({target_time.strftime('%A %H:%M')})")
-
-        await asyncio.sleep(wait_seconds)
-        await send_weekly_ranking()
+        if now.weekday() == 6 and now.hour == 16 and now.minute == 0:  # niedziela 16:00
+            if last_sent != current_time:
+                print("🏆 Wysyłam ranking tygodniowy!")
+                await send_weekly_ranking()
+                last_sent = current_time
+        await asyncio.sleep(30)
 
     
         
@@ -771,16 +771,10 @@ async def main():
     keep_alive()
 
     async with bot:
-        # Uruchamiamy harmonogram memów i ankiet
         asyncio.create_task(schedule_memes())
         asyncio.create_task(schedule_ankiety())
         asyncio.create_task(schedule_weekly_ranking())
-
-        # Cotygodniowy ranking – jako osobny task
-        # asyncio.create_task(send_weekly_ranking())
-
-        await bot.start(TOKEN)
-
+        await bot.start(TOKEN)   
 
 if __name__ == "__main__":
     asyncio.run(main())
