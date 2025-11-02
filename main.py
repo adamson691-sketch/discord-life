@@ -409,7 +409,7 @@ async def send_ankieta(target_channel=None, only_two=False):
     msg = await target_channel.send(embed=embed)
     for emoji in emojis:
         await msg.add_reaction(emoji)
-    await asyncio.sleep(82800)  # 23h
+    await asyncio.sleep(120)  # 23h
     msg = await target_channel.fetch_message(msg.id)
     wyniki = []
     max_votes = -1
@@ -535,45 +535,92 @@ async def on_message(message):
         await send_weekly_ranking()
         return
 
-   # ─── Emoji ─────────────────────────────
+    #  ─── wyprawa ─────────────────────────────
+    if "wyprawa po marchew" in content.lower():
+        target_channel = bot.get_channel(HEART_CHANNEL_ID)
+        folder = "kozaz"
+        text_file = "kozat.txt"
+
+        # Ładowanie tekstów
+        march_texts = load_lines(text_file)
+
+        # Ładowanie pamięci
+        seen_march = memory.get("seen_march", [])
+        recent_march_texts = memory.get("recent_march_texts", [])
+
+        # Wybór tekstu
+        if not march_texts:
+            response_text = "🥕 Brak tekstów w pliku kozat!"
+        else:
+            available_texts = [t for t in march_texts if t not in recent_march_texts] or march_texts
+            response_text = random.choice(available_texts)
+            recent_march_texts.append(response_text)
+            memory["recent_march_texts"] = recent_march_texts[-100:]
+            await save_memory_jsonbin(memory)
+
+        # Wybór obrazka
+        img = None
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            available_files = [f for f in files if f not in seen_march] or files
+            img = random.choice(available_files)
+            seen_march.append(img)
+            memory["seen_march"] = seen_march[-500:]
+            await save_memory_jsonbin(memory)
+
+        # Wysłanie wiadomości
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send(response_text)
+        return
+        
+
+# ─── Emoji ─────────────────────────────
     HEART_EMOJIS = ["<3", "❤", "❤️", "♥️", "♥", "🤍", "💙", "🩵", "💚", "💛", "💜", "🖤", "🤎", "🧡", "💗", "🩶", "🩷", "💖"]
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
 
 
 # ─── Reakcja ❤️ ─────────────────────────────
     if any(heart in content for heart in HEART_EMOJIS):
-        # Zliczamy tylko treść wiadomości
         user_id = str(message.author.id)
         memory["heart_stats"][user_id] = memory["heart_stats"].get(user_id, 0) + 1
         await save_memory_jsonbin(memory)
 
-        # Wysyłanie odpowiedzi (tekst + obrazek)
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
-        folder = "images"
 
-        if not pickup_lines_love:
-            response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
-        else:
-            available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
-            response_text = random.choice(available)
-            recent_love_responses.append(response_text)
-            memory["recent_love_responses"] = recent_love_responses[-100:]
-            await save_memory_jsonbin(memory)
-    
+        # Losowy folder z listy
+        possible_folders = ["images", "gif_heart"]
+        existing_folders = [f for f in possible_folders if os.path.exists(f)]
+        folder = random.choice(existing_folders) if existing_folders else "images"
+
+        # Teksty
+    if not pickup_lines_love:
+        response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
+    else:
+        available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
+        response_text = random.choice(available)
+        recent_love_responses.append(response_text)
+        memory["recent_love_responses"] = recent_love_responses[-100:]
+        await save_memory_jsonbin(memory)
+
+        # Obrazek
         img = None
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            available_images = [f for f in files if f not in seen_images_love] or files
-            img = random.choice(available_images)
-            seen_images_love.append(img)
-            memory["seen_images_love"] = seen_images_love[-500:]
-            await save_memory_jsonbin(memory)
+    
+    if os.path.exists(folder):
+        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        available_images = [f for f in files if f not in seen_images_love] or files
+        img = random.choice(available_images)
+        seen_images_love.append(img)
+        memory["seen_images_love"] = seen_images_love[-500:]
+        await save_memory_jsonbin(memory)
 
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send(response_text)
-        return
+    # Wysyłka
+    if img:
+        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+    else:
+        await target_channel.send(response_text)
+    return
 
     # ─── Reakcja 🔥 ─────────────────────────────
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
@@ -582,34 +629,42 @@ async def on_message(message):
         user_id = str(message.author.id)
         memory["hot_stats"][user_id] = memory["hot_stats"].get(user_id, 0) + 1
         await save_memory_jsonbin(memory)
-    
-        # Wysyłanie odpowiedzi (tekst + obrazek)
-        target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
-        folder = "hot"
-    
-        if not pickup_lines_hot:
-            response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
-        else:
-            available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
-            response_text = random.choice(available)
-            recent_hot_responses.append(response_text)
-            memory["recent_hot_responses"] = recent_hot_responses[-70:]
-            await save_memory_jsonbin(memory)
 
+        # Kanał do wysyłki
+        target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
+
+        # Wysyłanie odpowiedzi (tekst + obrazek)
+        possible_folders = ["hot", "gif_hot"]
+        existing_folders = [f for f in possible_folders if os.path.exists(f)]
+        folder = random.choice(existing_folders) if existing_folders else "hot"
+
+    if not pickup_lines_hot:
+        response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
+    else:
+        available = [r for r in pickup_lines_hot if r not in recent_hot_responses] or pickup_lines_hot
+        response_text = random.choice(available)
+        recent_hot_responses.append(response_text)
+        memory["recent_hot_responses"] = recent_hot_responses[-70:]
+        await save_memory_jsonbin(memory)
+
+    # Wybór obrazka
         img = None
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            available_images = [f for f in files if f not in seen_images_hot] or files
-            img = random.choice(available_images)
-            seen_images_hot.append(img)
-            memory["seen_images_hot"] = seen_images_hot[-500:]
-            await save_memory_jsonbin(memory)
-    
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send(response_text)
-        return
+        seen_images_hot = memory.get("seen_images_hot", [])
+    if os.path.exists(folder):
+        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        available_images = [f for f in files if f not in seen_images_hot] or files
+        img = random.choice(available_images)
+        seen_images_hot.append(img)
+        memory["seen_images_hot"] = seen_images_hot[-500:]
+        await save_memory_jsonbin(memory)
+
+        # Wysłanie wiadomości
+    if img:
+        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+    else:
+        await target_channel.send(response_text)
+    return
+        
 # ─── Reakcja 🎃👻🧛 ─────────────────────────────
     HALLOWEEN_EMOJIS = ["🧛", "🎃", "👻"]
     if any(h in content for h in HALLOWEEN_EMOJIS):
