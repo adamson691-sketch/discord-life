@@ -538,7 +538,6 @@ async def on_message(message):
     #  ─── wyprawa ─────────────────────────────
     if "wyprawa po marchew" in content.lower():
         target_channel = bot.get_channel(HEART_CHANNEL_ID)
-        folder = "kozaz"
         text_file = "kozat.txt"
 
         # Ładowanie tekstów
@@ -556,16 +555,6 @@ async def on_message(message):
             response_text = random.choice(available_texts)
             recent_march_texts.append(response_text)
             memory["recent_march_texts"] = recent_march_texts[-100:]
-            await save_memory_jsonbin(memory)
-
-        # Wybór obrazka
-        img = None
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            available_files = [f for f in files if f not in seen_march] or files
-            img = random.choice(available_files)
-            seen_march.append(img)
-            memory["seen_march"] = seen_march[-500:]
             await save_memory_jsonbin(memory)
 
         # Wysłanie wiadomości
