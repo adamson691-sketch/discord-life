@@ -590,9 +590,9 @@ async def on_message(message):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
 
         # Losowy folder z listy
-        possible_folders = ["images", "gif_heart"]
+        possible_folders = ["imagesss", "gif_heart"]
         existing_folders = [f for f in possible_folders if os.path.exists(f)]
-        folder = random.choice(existing_folders) if existing_folders else "images"
+        folder = random.choice(existing_folders) if existing_folders else "imagesss"
 
         # Teksty
     if not pickup_lines_love:
