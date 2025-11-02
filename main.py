@@ -618,7 +618,7 @@ async def on_message(message):
         user_id = str(message.author.id)
         memory["hot_stats"][user_id] = memory["hot_stats"].get(user_id, 0) + 1
         await save_memory_jsonbin(memory)
-
+    
         # Kanał do wysyłki
         target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
 
@@ -627,6 +627,7 @@ async def on_message(message):
         existing_folders = [f for f in possible_folders if os.path.exists(f)]
         folder = random.choice(existing_folders) if existing_folders else "hot"
 
+        # Teksty
         if not pickup_lines_hot:
             response_text = "🔥 ...ale brak tekstów w pliku kuszace.txt!"
         else:
@@ -637,8 +638,8 @@ async def on_message(message):
             await save_memory_jsonbin(memory)
 
         # Wybór obrazka
-            img = None
-            seen_images_hot = memory.get("seen_images_hot", [])
+        img = None
+        seen_images_hot = memory.get("seen_images_hot", [])
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
             available_images = [f for f in files if f not in seen_images_hot] or files
@@ -647,7 +648,7 @@ async def on_message(message):
             memory["seen_images_hot"] = seen_images_hot[-500:]
             await save_memory_jsonbin(memory)
 
-            # Wysłanie wiadomości
+        # Wysłanie wiadomości
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
