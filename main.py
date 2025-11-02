@@ -584,32 +584,32 @@ async def on_message(message):
         folder = random.choice(existing_folders) if existing_folders else "imagesss"
 
         # Teksty
-    if not pickup_lines_love:
-        response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
-    else:
-        available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
-        response_text = random.choice(available)
-        recent_love_responses.append(response_text)
-        memory["recent_love_responses"] = recent_love_responses[-100:]
-        await save_memory_jsonbin(memory)
+        if not pickup_lines_love:
+            response_text = "❤️ ...ale brak tekstów w pliku Podryw.txt!"
+        else:
+            available = [r for r in pickup_lines_love if r not in recent_love_responses] or pickup_lines_love
+            response_text = random.choice(available)
+            recent_love_responses.append(response_text)
+            memory["recent_love_responses"] = recent_love_responses[-100:]
+            await save_memory_jsonbin(memory)
 
-        # Obrazek
-        img = None
+            # Obrazek
+            img = None
     
-    if os.path.exists(folder):
-        files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-        available_images = [f for f in files if f not in seen_images_love] or files
-        img = random.choice(available_images)
-        seen_images_love.append(img)
-        memory["seen_images_love"] = seen_images_love[-500:]
-        await save_memory_jsonbin(memory)
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+            available_images = [f for f in files if f not in seen_images_love] or files
+            img = random.choice(available_images)
+            seen_images_love.append(img)
+            memory["seen_images_love"] = seen_images_love[-500:]
+            await save_memory_jsonbin(memory)
 
-    # Wysyłka
-    if img:
-        await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-    else:
-        await target_channel.send(response_text)
-    return
+        # Wysyłka
+        if img:
+            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+        else:
+            await target_channel.send(response_text)
+        return
 
     # ─── Reakcja 🔥 ─────────────────────────────
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
