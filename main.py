@@ -409,7 +409,7 @@ async def send_ankieta(target_channel=None, only_two=False):
     msg = await target_channel.send(embed=embed)
     for emoji in emojis:
         await msg.add_reaction(emoji)
-    await asyncio.sleep(120)  # 23h
+    await asyncio.sleep(80600)  # 23h
     msg = await target_channel.fetch_message(msg.id)
     wyniki = []
     max_votes = -1
