@@ -582,8 +582,8 @@ async def on_message(message):
             try:
                 ch = await bot.fetch_channel(ch_id)
                 target_channels.append(ch)
-        except Exception as e:
-            print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
+            except Exception as e:
+                print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
         
         # Losowy folder z listy
         possible_folders = ["imagess", "gif_heart"]
@@ -632,8 +632,8 @@ async def on_message(message):
             try:
                 ch = await bot.fetch_channel(ch_id)
                 target_channels.append(ch)
-        except Exception as e:
-            print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
+            except Exception as e:
+                print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
     
         # Wysyłanie odpowiedzi (tekst + obrazek)
         possible_folders = ["hot", "gif_hot"]
