@@ -21,6 +21,7 @@ ANKIETA_CHANNEL_ID = int(os.environ.get("ANKIETA_CHANNEL_ID"))
 MEMORY_CHANNEL_ID = int(os.environ.get("MEMORY_CHANNEL_ID"))
 HALLOWEEN_ID = int(os.environ.get("HALLOWEEN_ID"))
 MEMY_CHANNEL_ID = int(os.environ.get("MEMY_CHANNEL_ID"))
+HEART_CHANNELA_ID = int(os.environ.get("HEART_CHANNELA_ID"))
 
 # ─── JSONBin Konfiguracja ─────────────────────────────
 JSONBIN_API = "https://api.jsonbin.io/v3/b"
