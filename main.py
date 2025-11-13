@@ -580,8 +580,8 @@ async def on_message(message):
         target_channels = []
         for ch_id in [HEART_CHANNEL_ID, HEART_CHANNELA_ID]:
             try:
-            ch = await bot.fetch_channel(ch_id)
-            target_channels.append(ch)
+                ch = await bot.fetch_channel(ch_id)
+                target_channels.append(ch)
         except Exception as e:
             print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
         
@@ -630,9 +630,9 @@ async def on_message(message):
         # Kanał do wysyłki
         for ch_id in [HOT_CHANNEL_ID, HEART_CHANNELA_ID]:
             try:
-            ch = await bot.fetch_channel(ch_id)
-            target_channels.append(ch)
-    except Exception as e:
+                ch = await bot.fetch_channel(ch_id)
+                target_channels.append(ch)
+        except Exception as e:
             print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
     
         # Wysyłanie odpowiedzi (tekst + obrazek)
