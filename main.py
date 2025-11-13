@@ -576,8 +576,9 @@ async def on_message(message):
         memory["heart_stats"][user_id] = memory["heart_stats"].get(user_id, 0) + 1
         await save_memory_jsonbin(memory)
 
-        target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
-
+        target_channels_ids = [HEART_CHANNEL_ID, HEART_CHANNELA_ID]
+        target_channels = [bot.get_channel(ch_id) for ch_id in target_channels_ids if bot.get_channel(ch_id)]
+        
         # Losowy folder z listy
         possible_folders = ["imagess", "gif_heart"]
         existing_folders = [f for f in possible_folders if os.path.exists(f)]
@@ -620,7 +621,7 @@ async def on_message(message):
         await save_memory_jsonbin(memory)
     
         # Kanał do wysyłki
-        target_channel = bot.get_channel(HOT_CHANNEL_ID) or message.channel
+        target_channel = bot.get_channel(HOT_CHANNEL_ID, HEART_CHANNELA_ID) or message.channel
 
         # Wysyłanie odpowiedzi (tekst + obrazek)
         possible_folders = ["hot", "gif_hot"]
