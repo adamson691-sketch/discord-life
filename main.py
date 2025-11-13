@@ -536,7 +536,7 @@ async def on_message(message):
         return
 
     #  ─── wyprawa ─────────────────────────────
-    if "wyprawa po marchew" in content.lower():
+    if "wyprawa po marrrchew" in content.lower():
         target_channel = bot.get_channel(HEART_CHANNEL_ID)
         text_file = "kozat.txt"
 
@@ -579,9 +579,9 @@ async def on_message(message):
         target_channel = bot.get_channel(HEART_CHANNEL_ID) or message.channel
 
         # Losowy folder z listy
-        possible_folders = ["imagesss", "gif_heart"]
+        possible_folders = ["imagess", "gif_heart"]
         existing_folders = [f for f in possible_folders if os.path.exists(f)]
-        folder = random.choice(existing_folders) if existing_folders else "imagesss"
+        folder = random.choice(existing_folders) if existing_folders else "imagess"
 
         # Teksty
         if not pickup_lines_love:
@@ -655,47 +655,6 @@ async def on_message(message):
             await target_channel.send(response_text)
         return
         
-# ─── Reakcja 🎃👻🧛 ─────────────────────────────
-    HALLOWEEN_EMOJIS = ["🧛", "🎃", "👻"]
-    if any(h in content for h in HALLOWEEN_EMOJIS):
-        # Kanał i folder
-        target_channel = bot.get_channel(HALLOWEEN_ID) or message.channel
-        folder = "hallophoto"
-        text_file = "halloteksty.txt"
-
-        # Ładowanie tekstów
-        hallo_texts = load_lines(text_file)
-
-        # Ładowanie pamięci
-        seen_hallo = memory.get("seen_hallo", [])
-        recent_hallo_texts = memory.get("recent_hallo_texts", [])
-
-        # Wybór tekstu
-        if not hallo_texts:
-            response_text = "🎃 Brak tekstów w pliku halloteksty.txt!"
-        else:
-            available_texts = [t for t in hallo_texts if t not in recent_hallo_texts] or hallo_texts
-            response_text = random.choice(available_texts)
-            recent_hallo_texts.append(response_text)
-            memory["recent_hallo_texts"] = recent_hallo_texts[-100:]
-            await save_memory_jsonbin(memory)
-    
-        # Wybór obrazka lub GIF-a
-        img = None
-        if os.path.exists(folder):
-            files = [f for f in os.listdir(folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
-            available_files = [f for f in files if f not in seen_hallo] or files
-            img = random.choice(available_files)
-            seen_hallo.append(img)
-            memory["seen_hallo"] = seen_hallo[-500:]
-            await save_memory_jsonbin(memory)
-
-        # Wysłanie wiadomości
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send(response_text)
-        return
         
 
     # ─── Komenda OSTATNIE ─────────────────────────────
