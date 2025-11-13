@@ -608,6 +608,7 @@ async def on_message(message):
             await save_memory_jsonbin(memory)
 
         # Wysyłka
+        for target_channel in target_channels:
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
@@ -653,6 +654,7 @@ async def on_message(message):
             await save_memory_jsonbin(memory)
 
         # Wysłanie wiadomości
+        for target_channel in target_channels:
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
