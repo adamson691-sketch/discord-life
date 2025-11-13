@@ -609,11 +609,11 @@ async def on_message(message):
 
         # Wysyłka
         for target_channel in target_channels:
-        if img:
-            await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
-        else:
-            await target_channel.send(response_text)
-        return
+            if img:
+                await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
+            else:
+                await target_channel.send(response_text)
+            return
 
     # ─── Reakcja 🔥 ─────────────────────────────
     HOT_EMOJIS = ["🔥", "gorąco", "goraco"]
@@ -654,7 +654,7 @@ async def on_message(message):
             await save_memory_jsonbin(memory)
 
         # Wysłanie wiadomości
-        for target_channel in target_channels:
+            for target_channel in target_channels:
         if img:
             await target_channel.send(response_text, file=discord.File(os.path.join(folder, img)))
         else:
