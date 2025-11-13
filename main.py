@@ -577,9 +577,13 @@ async def on_message(message):
         memory["heart_stats"][user_id] = memory["heart_stats"].get(user_id, 0) + 1
         await save_memory_jsonbin(memory)
 
-        target_channels_ids = [HEART_CHANNEL_ID, HEART_CHANNELA_ID]
-        target_channels = [bot.get_channel(ch_id) for ch_id in target_channels_ids if bot.get_channel(ch_id)]
-    
+        target_channels = []
+        for ch_id in [HEART_CHANNEL_ID, HEART_CHANNELA_ID]:
+            try:
+            ch = await bot.fetch_channel(ch_id)
+            target_channels.append(ch)
+        except Exception as e:
+            print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
         
         # Losowy folder z listy
         possible_folders = ["imagess", "gif_heart"]
@@ -624,9 +628,13 @@ async def on_message(message):
         await save_memory_jsonbin(memory)
     
         # Kanał do wysyłki
-        target_channels_ids = [HOT_CHANNEL_ID, HEART_CHANNELA_ID]
-        target_channels = [bot.get_channel(ch_id) for ch_id in target_channels_ids if bot.get_channel(ch_id)]
-
+        for ch_id in [HOT_CHANNEL_ID, HEART_CHANNELA_ID]:
+            try:
+            ch = await bot.fetch_channel(ch_id)
+            target_channels.append(ch)
+    except Exception as e:
+            print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
+    
         # Wysyłanie odpowiedzi (tekst + obrazek)
         possible_folders = ["hot", "gif_hot"]
         existing_folders = [f for f in possible_folders if os.path.exists(f)]
