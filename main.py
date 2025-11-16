@@ -578,7 +578,7 @@ async def on_message(message):
         await save_memory_jsonbin(memory)
 
         target_channels = []
-        for ch_id in [HEART_CHANNEL_ID, HEART_CHANNELA_ID]:
+        for ch_id in [HEART_CHANNEL_ID,:
             try:
                 ch = await bot.fetch_channel(ch_id)
                 target_channels.append(ch)
@@ -586,9 +586,9 @@ async def on_message(message):
                 print(f"❌ Nie udało się pobrać kanału {ch_id}: {e}")
         
         # Losowy folder z listy
-        possible_folders = ["imagess", "gif_heart"]
+        possible_folders = ["imegess", "gif_heart"]
         existing_folders = [f for f in possible_folders if os.path.exists(f)]
-        folder = random.choice(existing_folders) if existing_folders else "imagess"
+        folder = random.choice(existing_folders) if existing_folders else "imegess"
 
         # Teksty
         if not pickup_lines_love:
@@ -628,7 +628,7 @@ async def on_message(message):
         await save_memory_jsonbin(memory)
     
         # Kanał do wysyłki
-        for ch_id in [HOT_CHANNEL_ID, HEART_CHANNELA_ID]:
+        for ch_id in [HOT_CHANNEL_ID,]:
             try:
                 ch = await bot.fetch_channel(ch_id)
                 target_channels.append(ch)
