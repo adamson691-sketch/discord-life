@@ -578,7 +578,7 @@ async def on_message(message):
         await save_memory_jsonbin(memory)
 
         target_channels = []
-        for ch_id in [HEART_CHANNEL_ID,:
+        for ch_id in [HEART_CHANNEL_ID,]:
             try:
                 ch = await bot.fetch_channel(ch_id)
                 target_channels.append(ch)
